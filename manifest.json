@@ -14,9 +14,9 @@
   "categories": ["social", "lifestyle"],
   "icons": [
     {
-      "src": "apple-touch-icon.png",
+      "src": "apple-touch-icon.PNG",
       "sizes": "180x180",
-      "type": "image/png",
+      "type": "image/PNG",
       "purpose": "any"
     }
   ]
