@@ -1,5 +1,5 @@
 /* 字卡 / 聊天站 Service Worker — 支持安装为 App、离线打开、通知 */
-const CACHE = 'puyu-v2';
+const CACHE = 'puyu-v3';
 const PRECACHE = [
   './',
   './index.html',
