@@ -1711,7 +1711,14 @@ function parseCardBackup(d){
   const cs=Array.isArray(d)?d:d.cards;
   if(!Array.isArray(cs))throw Error('no cards');
   const groups=Array.isArray(d.groups)?d.groups:[];
-  return {groups,cards:cs,label:'字卡库备份'};
+  // 兼容旧版/外部「kind: cards, version: 2」备份：正文可能保存在 text 而非 content。
+  // 图片字卡的 text 字段可能是 data URL/base64，必须保留 image 类型与原始内容。
+  const normalizedCards=cs.map(c=>{
+    if(!c||typeof c!=='object')return c;
+    const content=c.content!=null?c.content:(c.text!=null?c.text:(c.value!=null?c.value:''));
+    return {...c,content,group:c.group!=null?c.group:(c.groupId!=null?c.groupId:'public')};
+  });
+  return {groups,cards:normalizedCards,label:'字卡库备份'};
 }
 $('cpImport').onclick=()=>{
   const f=document.createElement('input');f.type='file';f.accept='.json,application/json';
