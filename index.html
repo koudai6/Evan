@@ -2654,13 +2654,12 @@ function exportCards(){
 $('cpExport').onclick=exportCards;
 function isReplyGroupBackup(d){
   if(!d||typeof d!=='object')return false;
-  if(d._groupExport===true)return true;
-  if(Array.isArray(d.customReplies)&&!Array.isArray(d.cards))return true;
-  if(Array.isArray(d.groups)&&d.groups.some(g=>g&&Array.isArray(g.items)))return true;
-  return false;
+  return d._groupExport===true || Array.isArray(d.customReplies) || Array.isArray(d.customReplyGroups);
 }
 function normalizeCardType(t,content){
+  const aliases={picture:'image',img:'image',photo:'image',sticker:'pat',emoji:'emoji',text:'text'};
   if(t&&['text','emoji','image','pat','status'].includes(t))return t;
+  if(t&&aliases[t])return aliases[t];
   if(typeof content==='string'&&EMO.test(content.trim()))return 'emoji';
   return 'text';
 }
@@ -2670,95 +2669,69 @@ function applyCardImport(payload,mode){
   let ng=0,n=0,skip=0;
   if(mode==='overwrite'){
     const keepPublic=S.groups.find(g=>g.id==='public')||{id:'public',name:'公共（未分组）',enabled:true};
-    const oldIds=new Set(S.groups.map(g=>g.id));
-    S.groups=[keepPublic];
-    S.cards=S.cards.filter(c=>c.type==='mypat');
+    S.groups=[keepPublic]; S.cards=S.cards.filter(c=>c.type==='mypat');
     G.contacts.forEach(c=>{c.sel=(c.sel||[]).filter(id=>id==='public')});
-    oldIds.forEach(id=>{if(id!=='public'){/* cleared */}});
   }
   const map={public:'public'};
   const existingKeys=new Set(S.cards.filter(c=>c.type!=='mypat').map(c=>cardKey(c.type,c.content,c.group)));
   (inGroups||[]).forEach(g=>{
     if(!g||!g.name||g.id==='public'||String(g.name)==='公共（未分组）')return;
     let x=S.groups.find(y=>y.name===g.name);
-    if(!x){
-      x={id:'g'+Date.now()+Math.random().toString(36).slice(2,6),name:String(g.name).slice(0,40),enabled:g.enabled!==false};
-      addGroup(x);ng++;
-    }else if(g.enabled===false){x.enabled=false}
-    map[g.id!=null?g.id:g.name]=x.id;
-    map[g.name]=x.id;
+    if(!x){x={id:'g'+Date.now()+Math.random().toString(36).slice(2,6),name:String(g.name).slice(0,40),enabled:g.enabled!==false};addGroup(x);ng++}
+    else if(g.enabled===false)x.enabled=false;
+    if(g.id!=null)map[String(g.id)]=x.id; map[String(g.name)]=x.id;
   });
   (inCards||[]).forEach(c=>{
     if(!c)return;
-    // 兼容不同备份版本：有的使用 content，有的使用 text/value。
-    const rawContent=c.content!=null?c.content:(c.text!=null?c.text:(c.value!=null?c.value:c.card));
-    if(rawContent==null||rawContent==='')return;
-    const content=String(rawContent).trim();
-    if(!content)return;
+    const raw=c.content!=null?c.content:(c.text!=null?c.text:(c.value!=null?c.value:(c.card!=null?c.card:c.url)));
+    if(raw==null||raw==='')return;
+    const content=typeof raw==='string'?raw.trim():String(raw); if(!content)return;
     const type=normalizeCardType(c.type,content);
     if(!['text','emoji','image','pat','status'].includes(type))return;
-    let gid='public';
-    if(c.group!=null&&map[c.group]!=null)gid=map[c.group];
-    else if(c.groupName&&map[c.groupName]!=null)gid=map[c.groupName];
-    const key=cardKey(type,content,gid);
-    if(existingKeys.has(key)){skip++;return}
-    existingKeys.add(key);
-    const k=mk(type,content,gid);k.enabled=c.enabled!==false;S.cards.push(k);n++;
+    let gid='public'; const sourceGroup=c.group!=null?c.group:(c.groupId!=null?c.groupId:c.groupName);
+    if(sourceGroup!=null&&map[String(sourceGroup)]!=null)gid=map[String(sourceGroup)];
+    const key=cardKey(type,content,gid); if(existingKeys.has(key)){skip++;return} existingKeys.add(key);
+    const k=mk(type,content,gid); k.enabled=c.enabled!==false;
+    if(Number.isFinite(Number(c.probability)))k.probability=Number(c.probability);
+    if(Number.isFinite(Number(c.cooldown)))k.cooldown=Number(c.cooldown);
+    if(c.id!=null)k.sourceId=String(c.id);
+    S.cards.push(k); n++;
   });
-  // 导入后清除旧筛选条件，避免分组已导入但字卡列表看似空白。
-  V.group='all';V.type='all';V.q='';V.sel.clear();V.multi=false;
-  save();renderCards();
-  const parts=['已导入 '+n+' 张字卡'];
-  if(skip)parts.push('跳过重复 '+skip+' 张');
-  if(ng)parts.push('新增 '+ng+' 个分组');
-  if(mode==='overwrite')parts.unshift('已覆盖后');
-  toast(parts.join('，'));
+  V.group='all';V.type='all';V.q='';V.sel.clear();V.multi=false;save();renderCards();
+  const parts=['已导入 '+n+' 张字卡'];if(skip)parts.push('跳过重复 '+skip+' 张');if(ng)parts.push('新增 '+ng+' 个分组');if(mode==='overwrite')parts.unshift('已覆盖后');toast(parts.join('，'));
 }
 function parseCardBackup(d){
+  if(!d||typeof d!=='object')throw Error('invalid');
+  // 新版字卡库：{kind:'cards', groups:[...], cards:[{text,group,...}]}
+  if(Array.isArray(d.cards)){
+    const groups=Array.isArray(d.groups)?d.groups.map(g=>({...g,id:g.id!=null?String(g.id):g.name})):[];
+    const cards=d.cards.map(c=>({...c,content:c.content!=null?c.content:(c.text!=null?c.text:(c.value!=null?c.value:c.card))}));
+    if(!cards.length)throw Error('empty');
+    return {groups,cards,label:'新版字卡库备份'};
+  }
+  // 旧版回复分组：customReplyGroups + customReplies
   if(isReplyGroupBackup(d)){
-    const groups=[],cards=[],seen=new Set();
-    const list=Array.isArray(d.groups)?d.groups:[];
-    list.forEach(g=>{
-      if(!g||!g.name)return;
-      const gid=g.id!=null?g.id:('tmp_'+g.name);
-      groups.push({id:gid,name:String(g.name),enabled:true});
+    const groups=[],cards=[],seen=new Set(), groupList=Array.isArray(d.customReplyGroups)?d.customReplyGroups:(Array.isArray(d.groups)?d.groups:[]);
+    groupList.forEach(g=>{
+      if(!g||!g.name)return;const gid=g.id!=null?String(g.id):('tmp_'+g.name);
+      groups.push({id:gid,name:String(g.name),enabled:g.enabled!==false});
       (Array.isArray(g.items)?g.items:[]).forEach(item=>{
-        if(item==null||item==='')return;
-        const content=String(item).trim();
-        if(!content)return;
-        const type=normalizeCardType(null,content);
-        const key=cardKey(type,content,gid);
-        if(seen.has(key))return;seen.add(key);
+        if(item==null||item==='')return;const content=String(item).trim();if(!content)return;
+        const type=normalizeCardType(null,content),key=cardKey(type,content,gid);if(seen.has(key))return;seen.add(key);
         cards.push({type,content,group:gid,enabled:true});
       });
     });
-    if(Array.isArray(d.customReplies)&&d.customReplies.length){
-      const hasGrouped=cards.length>0;
-      d.customReplies.forEach(item=>{
-        if(item==null||item==='')return;
-        const content=String(item).trim();
-        if(!content)return;
-        const type=normalizeCardType(null,content);
-        if(hasGrouped){
-          const already=cards.some(c=>c.content===content&&c.type===type);
-          if(already)return;
-          const key=cardKey(type,content,'public');
-          if(seen.has(key))return;seen.add(key);
-          cards.push({type,content,group:'public',enabled:true});
-        }else{
-          const key=cardKey(type,content,'public');
-          if(seen.has(key))return;seen.add(key);
-          cards.push({type,content,group:'public',enabled:true});
-        }
-      });
-    }
-    if(!cards.length)throw Error('empty');
-    return {groups,cards,label:'回复分组备份'};
+    (Array.isArray(d.customReplies)?d.customReplies:[]).forEach(item=>{
+      if(item==null||item==='')return;const content=String(item).trim();if(!content)return;
+      const type=normalizeCardType(null,content);
+      if(cards.some(c=>c.content===content&&c.type===type))return;
+      const key=cardKey(type,content,'public');if(seen.has(key))return;seen.add(key);
+      cards.push({type,content,group:'public',enabled:true});
+    });
+    if(!cards.length)throw Error('empty');return {groups,cards,label:'旧版回复分组备份'};
   }
-  const cs=Array.isArray(d)?d:d.cards;
-  if(!Array.isArray(cs))throw Error('no cards');
-  const groups=Array.isArray(d.groups)?d.groups:[];
-  return {groups,cards:cs,label:'字卡库备份'};
+  if(Array.isArray(d))return {groups:[],cards:d,label:'字卡数组备份'};
+  throw Error('no cards');
 }
 $('cpImport').onclick=()=>{
   const f=document.createElement('input');f.type='file';f.accept='.json,application/json';
