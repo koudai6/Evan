@@ -1128,6 +1128,23 @@ header{padding-right:10px!important}
 .cg-chip.on{background:var(--ink)!important;color:var(--bg)!important}
 .lt-custom-bg .lt-bg{opacity:1!important;filter:none!important}
 .lt-row.on b{color:var(--ink)!important}
+
+/* 本轮调整：每段仅最后一条显示时间；消息字体恢复常规字重；字卡库纯黑白 */
+#chat .gh .gt{display:none!important}
+#chat .r>.ts{flex:none;align-self:flex-end;font-size:10px;line-height:1;color:var(--mute);padding:0 2px 5px;white-space:nowrap;font-variant-numeric:tabular-nums;opacity:.8}
+html.cs-ref #chat .r.rf>.ts{font-size:10px!important;font-weight:400!important;color:#999!important}
+html.cs-ref #chat .r.rf>.m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots){font-weight:400!important}
+#chat .m .tx{font-weight:400!important}
+#cardsPage{background:#fff!important;color:#111!important}
+#cardsPage .cp-head{background:#fff!important;color:#111!important;border-bottom:1px solid #d6d6d6!important}
+#cardsPage .cp-head button{background:#f5f5f5!important;color:#111!important;border-color:#c9c9c9!important}
+#cardsPage .cp-title{color:#111!important}
+#cardsPage #cpSearch{background:#f5f5f5!important;color:#111!important;border-color:#c9c9c9!important;box-shadow:none!important}
+#cardsPage .chip{background:#f5f5f5!important;color:#222!important;border-color:#c9c9c9!important}
+#cardsPage .chip.on{background:#111!important;color:#fff!important;border-color:#111!important}
+#cardsPage .cp-actions button,#cardsPage #cpBar button,#cardsPage .mini{background:#f5f5f5!important;color:#111!important;border-color:#c9c9c9!important}
+#cardsPage #cpBar{background:#fff!important;border-top:1px solid #d6d6d6!important}
+@media(prefers-color-scheme:dark){#cardsPage{background:#000!important;color:#f5f5f5!important}#cardsPage .cp-head,#cardsPage #cpBar{background:#000!important;color:#f5f5f5!important;border-color:#444!important}#cardsPage .cp-head button,#cardsPage #cpSearch,#cardsPage .chip,#cardsPage .cp-actions button,#cardsPage #cpBar button,#cardsPage .mini{background:#171717!important;color:#f5f5f5!important;border-color:#555!important}#cardsPage .cp-title{color:#f5f5f5!important}#cardsPage .chip.on{background:#f5f5f5!important;color:#000!important;border-color:#f5f5f5!important}}
 </style>
 </head>
 <body>
@@ -1160,6 +1177,7 @@ header{padding-right:10px!important}
   <div class="panel">
     <h2>更多</h2>
     <label>对方昵称<input id="fName" maxlength="20"></label>
+    <label>对方 ID<input id="fUid" maxlength="24" placeholder="显示在顶栏昵称下方"></label>
     <label>我的昵称<input id="fMy" maxlength="20"></label>
     <div class="row"><button id="pickAv">选择对方头像</button><button id="pickMy">选择我的头像</button></div>
     <div class="row"><button id="rstAv">对方恢复默认</button><button id="rstMy">我恢复默认</button></div>
@@ -1223,7 +1241,7 @@ header{padding-right:10px!important}
 <div class="sheet" id="sheetPlus" hidden>
   <div class="panel">
     <div class="grid">
-      <button data-a="sticker">表情包</button><button data-a="image">图片</button><button data-a="cards">字卡库</button>
+      <button data-a="cards">字卡库</button>
       <button data-a="pat">拍一拍</button><button data-a="skin">装扮</button><button data-a="cfg">设置</button>
     </div>
   </div>
@@ -1258,6 +1276,7 @@ header{padding-right:10px!important}
 .lt-av+.lt-av{margin-left:-16px}
 .lt-av img{width:100%;height:100%;object-fit:cover}
 .lt-who{margin-top:8px;font-size:13px;color:var(--mute)}
+.lt-time{margin-top:5px;font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
 .lt-disc{margin:auto 0;width:min(66vw,260px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:repeating-radial-gradient(#111 0 2px,#1c1c1e 2px 4px);box-shadow:0 14px 40px rgba(0,0,0,.28);animation:ltspin 18s linear infinite;animation-play-state:paused}
 .playing .lt-disc,.lm-on .lm-cv{animation-play-state:running}
 .lt-disc{cursor:pointer;transition:opacity .25s}
@@ -1277,6 +1296,9 @@ header{padding-right:10px!important}
 .lt-ctl svg{width:24px;height:24px}
 #lt .lt-ctl .big{width:66px;height:66px;background:var(--ink);color:var(--bg)}
 .lt-ctl .big svg{width:30px;height:30px}
+.lt-mode-row{width:100%;display:flex;justify-content:center;margin-top:8px}
+#ltMode{display:flex!important;align-items:center;gap:7px;padding:7px 13px!important;border-radius:18px;background:rgba(120,120,128,.13)!important;font-size:12px;color:var(--mute)!important}
+#ltMode svg{width:15px;height:15px}
 .lt-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
 .lt-row.on b{color:var(--blue)}
 .lt-row>div{flex:1;min-width:0}
@@ -1318,7 +1340,7 @@ addEventListener('pagehide',flush);
 const DEF='<svg viewBox="0 0 24 24" width="58%" height="58%" fill="#bbb"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
 function fillAv(el,src){el.innerHTML='';if(src){const im=document.createElement('img');im.src=src;im.alt='';el.append(im)}else el.innerHTML=DEF}
 function mkAv(mine){const a=document.createElement('div');a.className='av2';fillAv(a,mine?S.profile.myAvatar:S.profile.avatar);return a}
-function paintHeader(){$('nm').textContent=(S.profile.name||'对方')+'&'+(S.profile.myName||'我');$('st').textContent=rt(cur()).typing?'正在输入…':'';document.title=(S.profile.name||'对方')+'&'+(S.profile.myName||'我');fillAv($('av'),S.profile.avatar);fillAv($('myAv'),S.profile.myAvatar);if(keepAudio)setMedia()}
+function paintHeader(){const REF=S.skin.layout==='ref';if(REF&&!S.profile.uid){S.profile.uid=String(Math.floor(1e8+Math.random()*9e8));try{save()}catch(e){}}$('nm').textContent=REF?(S.profile.name||'对方'):(S.profile.name||'对方')+'&'+(S.profile.myName||'我');$('st').textContent=rt(cur()).typing?'正在输入…':(REF?(S.profile.uid||''):'');document.title=(S.profile.name||'对方')+'&'+(S.profile.myName||'我');fillAv($('av'),S.profile.avatar);fillAv($('myAv'),S.profile.myAvatar);if(keepAudio)setMedia()}
 const hhmm=t=>{const d=new Date(t);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
 const CK1='<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const CK2='<svg viewBox="0 0 24 24"><path d="M2 12.5l4.5 4.5L15.5 7.5M10 15.5l1.5 1.5L21 7.5"/></svg>';
@@ -1355,11 +1377,18 @@ function render(keep){
     }
     const nx2=S.msgs[i+1];
     if(!nx2||nx2.type==='pat'||nx2.type==='call'||nx2.mine!==m.mine||new Date(nx2.t).toDateString()!==dk)r.classList.add('last');
-    if(first)c.append(grpHead(m.mine,m.t));
+    const REF=S.skin.layout==='ref';
+    if(first&&!REF)c.append(grpHead(m.mine,m.t));
     if(m.reply)c.append(qLine(m));
-        r.append(e);c.append(r);
+        if(REF){
+      r.classList.add('rf');
+      const av=first?mkAv(m.mine):h('div','avsp');
+      if(r.classList.contains('last')){const ts=h('span','ts',hhmm(m.t));if(m.mine)r.append(ts,e,av);else r.append(av,e,ts)}
+      else if(m.mine)r.append(e,av);else r.append(av,e);
+    }else{r.append(e);if(r.classList.contains('last'))r.append(h('span','ts',hhmm(m.t)))}
+    c.append(r);
   }
-  if(rt(ct).typing){c.append(grpHead(false,Date.now()));const r=h('div','r theirs first last'),d=h('div','m dots');d.innerHTML='<i></i><i></i><i></i>';r.append(d);c.append(r)}
+  if(rt(ct).typing){const REF2=S.skin.layout==='ref';if(!REF2)c.append(grpHead(false,Date.now()));const r=h('div','r theirs first last'),d=h('div','m dots');d.innerHTML='<i></i><i></i><i></i>';if(REF2){r.classList.add('rf');r.append(mkAv(false),d)}else r.append(d);c.append(r)}
   decorateStatus(c,ct);
   c.scrollTop=keep?st0:c.scrollHeight;
 }
@@ -1481,7 +1510,7 @@ async function vEnd(doSend){
 })();
 
 /* 设置 */
-$('more').onclick=()=>{$('fName').value=S.profile.name;$('fMy').value=S.profile.myName||'我';$('sheet').hidden=false};
+$('more').onclick=()=>{$('fName').value=S.profile.name;$('fUid').value=S.profile.uid||'';$('fMy').value=S.profile.myName||'我';$('sheet').hidden=false};
 function pickFiles(max,q,cb){
   const f=document.createElement('input');f.type='file';f.accept='image/*,.gif,.webp,.apng,.png';f.multiple=true;
   f.onchange=async()=>{const files=Array.from(f.files||[]);if(!files.length)return;const out=[];
@@ -1527,7 +1556,7 @@ PPI.moments='<svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="eveno
 PPI.listen='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 0 0-9 9v6a3 3 0 0 0 3 3h1a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1H5v-1a7 7 0 0 1 14 0v1h-2a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h1a3 3 0 0 0 3-3v-6a9 9 0 0 0-9-9z"/></svg>';
 PPI.calllog='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.6 21 3 13.4 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>';
 PPI.mystat='<svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M5 3h14a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-6l-4.5 4v-4H5a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3zm3.6 4.6a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm6.8 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zM8.4 11.6h7.2a3.6 3.6 0 0 1-7.2 0z"/></svg>';
-const PP_ITEMS=[['sticker','表情包'],['image','相册'],['cards','字卡库'],['transfer','转账'],['poll','抉择'],['moments','朋友圈'],['cfg','设置'],['pat','拍一拍'],['skin','装扮'],['listen','一起听'],['calllog','通话记录'],['mystat','我的状态']];
+const PP_ITEMS=[['cards','字卡库'],['transfer','转账'],['poll','抉择'],['moments','朋友圈'],['cfg','设置'],['pat','拍一拍'],['skin','装扮'],['listen','一起听'],['calllog','通话记录'],['mystat','我的状态']];
 function plusAction(a){
   if(a==='image')pickFiles(1280,.82,()=>{});
   else if(a==='cfg')openCfg();
@@ -1666,6 +1695,7 @@ document.querySelectorAll('.sheet').forEach(sh=>sh.onclick=e=>{if(e.target===sh&
 $('ok').onclick=()=>{
   S.profile.name=$('fName').value.trim()||'对方';
   S.profile.myName=$('fMy').value.trim()||'我';
+  S.profile.uid=$('fUid').value.trim();
   paintHeader();save();$('sheet').hidden=true;
 };
 $('clr').onclick=()=>{$('sheet').hidden=true;askYes('确定清空全部聊天记录？',()=>{S.msgs=[];render();save()},'清空')};
@@ -1808,8 +1838,9 @@ function statusTick(ct){
 }
 function decorateStatus(c,ct){
   [['theirs',ct.stat&&ct.stat.text],['mine',ct.myStat]].forEach(([k,txt])=>{
-    const hs=c.querySelectorAll('.gh.'+k),g=hs[hs.length-1];if(!g)return;
-    const av=g.querySelector('.av2');if(!av)return;
+    const ref=S.skin.layout==='ref';
+    const hs=ref?[...c.querySelectorAll('.r.rf.'+k)].filter(x=>x.querySelector(':scope>.av2')):c.querySelectorAll('.gh.'+k),g=hs[hs.length-1];if(!g)return;
+    const av=ref?g.querySelector(':scope>.av2'):g.querySelector('.av2');if(!av)return;
     const w=h('div','avw');av.replaceWith(w);w.append(av);
     if(k==='mine'){w.style.cursor='pointer';w.onclick=myStatDlg}
     if(txt){w.append(stBubble(txt,k));g.classList.add('hasst')}
@@ -2314,7 +2345,7 @@ $('callMin').onclick=()=>{
 })();
 
 /* ========== 装扮：自定义气泡 / 导入 cos 气泡代码 / 保存 ========== */
-const SKIN_DEF={bm:'',bmc:'',bt:'',btc:'',br:0,rad:null,fs:0,css:'',tg:'both',notail:false,font:'builtin',fontName:''};
+const SKIN_DEF={bm:'',bmc:'',bt:'',btc:'',br:0,rad:null,fs:0,css:'',tg:'both',notail:false,font:'builtin',fontName:'',layout:'classic'};
 const DEF_RAD=12;
 /* ========== 全局字体：内置「棠梨方居中」/ 导入 TTF·OTF·WOFF / 系统默认 ========== */
 const FF_BASE='-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif';
@@ -2355,6 +2386,7 @@ function applySkin(){
   let rad=k.rad;if(rad==null&&k.br>0)rad=k.br;
   if(rad==null||rad==='')r.removeProperty('--br');else r.setProperty('--br',Number(rad)+'px');
   document.documentElement.classList.toggle('sq',rad!=null&&rad!==''&&Number(rad)<=3);
+  document.documentElement.classList.toggle('cs-ref',k.layout==='ref');
   set('--fs',k.fs?k.fs+'px':'');applyFont();
   let st=$('skinCss');if(!st){st=document.createElement('style');st.id='skinCss';document.head.append(st)}
   let css=(k.css||'').replace(/@import[^;]*;?/gi,'').trim();
@@ -2370,6 +2402,12 @@ function skinDlg(){
       const row=(label,node)=>{const l=h('label','sw');l.append(h('span','',label),node);b.append(l)};
       const col=(key,v,label)=>{const i=h('input');i.type='color';i.value=k[key]||dv(v)||'#000000';i.oninput=()=>{k[key]=i.value;upd()};row(label,i)};
       const rng=(key,label,min,max,def)=>{const i=h('input');i.type='range';i.min=min;i.max=max;i.value=k[key]||def;i.oninput=()=>{k[key]=Number(i.value);upd()};row(label,i)};
+      b.append(h('div','hint','聊天排版'));
+      {const lay=k.layout==='ref'?'ref':'classic';
+        const mkL=(t,v)=>{const x=h('button',lay===v?'primary':'',t);x.onclick=()=>{k.layout=v;upd();paintHeader();if(cur())render(true);draw()};b.append(x)};
+        mkL('经典：头像昵称在气泡上方','classic');
+        mkL('参考图：头像在气泡旁 + 灰色时间戳','ref');
+        b.append(h('div','hint','参考图排版：对方头像和气泡在左、时间在气泡右边；我方在右、时间在气泡左边。头像为圆角方形。'))}
       b.append(h('div','hint','全局字体'));
       {const fm=k.font||'builtin',cur=fm==='user'?('已导入：'+(k.fontName||'自定义字体')):fm==='system'?'系统默认':'内置：棠梨方居中';
         b.append(h('div','hint','当前：'+cur));
@@ -2429,16 +2467,18 @@ function menuCard(title,items){
 }
 $('mcX').onclick=()=>{$('mc').hidden=true};
 function profDlg(mine){
-  let inp;
+  let inp,uidInp;
   modal(mine?'我的昵称与头像':'对方昵称与头像',b=>{
     inp=h('input');inp.value=mine?(S.profile.myName||'我'):S.profile.name;inp.maxLength=20;inp.placeholder='昵称';
     const row=h('div','rowf'),pk=h('button','','选择头像'),rs=h('button','','恢复默认头像');
     pk.onclick=()=>setImg(mine?'myAvatar':'avatar',320);
     rs.onclick=()=>{if(mine)S.profile.myAvatar='';else S.profile.avatar='';paintHeader();render(true);save();toast('已恢复默认头像')};
-    row.append(pk,rs);b.append(inp,row);
+    row.append(pk,rs);b.append(inp);
+    if(!mine){uidInp=h('input');uidInp.value=S.profile.uid||'';uidInp.maxLength=24;uidInp.placeholder='ID（显示在顶栏昵称下方）';b.append(uidInp)}
+    b.append(row);
   },[['取消'],['保存',()=>{
     const v=inp.value.trim();
-    if(mine)S.profile.myName=v||'我';else S.profile.name=v||'对方';
+    if(mine)S.profile.myName=v||'我';else{S.profile.name=v||'对方';if(uidInp)S.profile.uid=uidInp.value.trim()}
     paintHeader();render(true);save();toast('已保存');if(view==='list')renderList();
   },'primary']]);
 }
@@ -3190,21 +3230,26 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 
 /* ========== 一起听 ========== */
 G.listen={songs:[],idx:0};
-const lt={on:false,t0:0,ct:null,url:''},au=new Audio();au.preload='metadata';
+const lt={on:false,t0:0,elapsed:0,runSince:0,ct:null,url:''},au=new Audio();au.preload='metadata';
+G.listen.mode=G.listen.mode||'list';
 const svg=(d,f)=>'<svg viewBox="0 0 24 24" '+(f?'fill="currentColor"':'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"')+'>'+d+'</svg>';
 const IC2={play:svg('<path d="M8 5v14l11-7z"/>',1),pause:svg('<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>',1),prev:svg('<path d="M6 5h2v14H6zM20 5v14L9 12z"/>',1),next:svg('<path d="M16 5h2v14h-2zM4 5l11 7L4 19z"/>',1),list:svg('<path d="M4 7h11M4 12h11M4 17h7M18 13v7M14.5 16.5h7"/>'),add:svg('<path d="M12 5v14M5 12h14"/>'),down:svg('<path d="M6 9l6 6 6-6"/>'),x:svg('<path d="M6 6l12 12M18 6 6 18"/>'),note:svg('<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>')};
 const lp=h('section');lp.id='lt';lp.hidden=true;
-lp.innerHTML='<div class="lt-bg"></div><div class="lt-top"><button id="ltMin" aria-label="缩小">'+IC2.down+'</button><b>一起听</b><span class="lt-top-actions"><button id="ltBg" aria-label="更换背景">背景</button><button id="ltEnd" aria-label="结束">'+IC2.x+'</button></span></div><div class="lt-pair"><div class="lt-av" id="ltA"></div><div class="lt-av" id="ltB"></div></div><div class="lt-who" id="ltWho"></div><div class="lt-disc"><div class="lt-cv" id="ltCv"></div></div><div class="lt-info"><div class="lt-t" id="ltT"></div><div class="lt-a" id="ltAr"></div></div><div class="lt-prog"><span id="ltCur">0:00</span><input type="range" id="ltSeek" min="0" max="1000" value="0"><span id="ltDur">0:00</span></div><div class="lt-ctl"><button id="ltAdd" aria-label="导入">'+IC2.add+'</button><button id="ltPrev">'+IC2.prev+'</button><button class="big" id="ltPlay"></button><button id="ltNext">'+IC2.next+'</button><button id="ltList" aria-label="列表">'+IC2.list+'</button></div>';
+lp.innerHTML='<div class="lt-bg"></div><div class="lt-top"><button id="ltMin" aria-label="缩小">'+IC2.down+'</button><b>一起听</b><span class="lt-top-actions"><button id="ltBg" aria-label="更换背景">背景</button><button id="ltEnd" aria-label="结束">'+IC2.x+'</button></span></div><div class="lt-pair"><div class="lt-av" id="ltA"></div><div class="lt-av" id="ltB"></div></div><div class="lt-who" id="ltWho"></div><div class="lt-time" id="ltTime">已一起听 0 分钟</div><div class="lt-disc"><div class="lt-cv" id="ltCv"></div></div><div class="lt-info"><div class="lt-t" id="ltT"></div><div class="lt-a" id="ltAr"></div></div><div class="lt-prog"><span id="ltCur">0:00</span><input type="range" id="ltSeek" min="0" max="1000" value="0"><span id="ltDur">0:00</span></div><div class="lt-ctl"><button id="ltAdd" aria-label="导入">'+IC2.add+'</button><button id="ltPrev">'+IC2.prev+'</button><button class="big" id="ltPlay"></button><button id="ltNext">'+IC2.next+'</button><button id="ltList" aria-label="列表">'+IC2.list+'</button></div><div class="lt-mode-row"><button id="ltMode"></button></div>';
 const mn=h('div');mn.id='ltMini';mn.hidden=true;mn.innerHTML='<span class="lm-cv" id="lmCv"></span><span class="lm-t" id="lmT"></span><button class="lm-p" id="lmP"></button>';
 document.body.append(lp,mn);
 const sg=()=>G.listen.songs[G.listen.idx];
 const mm=t=>isFinite(t)&&t>0?Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0'):'0:00';
 const grad=s=>{let n=0;for(const c of s.title)n=(n*31+c.charCodeAt(0))%360;return 'linear-gradient(135deg,hsl('+n+' 12% 38%),hsl('+(n+40)%360+' 10% 18%))'};
 function coverTo(el,s){el.innerHTML='';el.style.background=s?grad(s):'';if(s&&s.cover){const i=document.createElement('img');i.src=s.cover;el.append(i)}else el.innerHTML=IC2.note}
+function listenSeconds(){return lt.elapsed+(lt.runSince?Math.max(0,Math.floor((Date.now()-lt.runSince)/1000)):0)}
+const modeNames={one:'单曲循环',list:'列表循环',order:'顺序播放'};
+function paintListenTime(){const n=listenSeconds(),m=Math.floor(n/60),sec=n%60;$('ltTime').textContent='已一起听 '+m+' 分钟'+(m<1?' '+sec+' 秒':'')}
+function paintListenMode(){const mode=G.listen.mode||'list';$('ltMode').innerHTML=(mode==='one'?svg('<path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/>'):mode==='order'?IC2.list:svg('<path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="M7 22l-4-4 4-4"/><path d="M3 18h15a3 3 0 0 0 3-3v-2"/>'))+'<span>'+modeNames[mode]+'</span>'}
 function ltPaint(){
   const s=sg(),ct=lt.ct||cur(),pf=ct.profile,pl=!au.paused;
   fillAv($('ltA'),pf.avatar);fillAv($('ltB'),pf.myAvatar);
-  $('ltWho').textContent=(pf.name||'对方')+' & '+(pf.myName||'我')+(lt.on?' · 正在一起听':'');
+  $('ltWho').textContent=(pf.name||'对方')+' & '+(pf.myName||'我')+(lt.on?' · 正在一起听':'');paintListenTime();paintListenMode();
   coverTo($('ltCv'),s);coverTo($('lmCv'),s);
   const dc=G.listen.disc||{};
   if(dc.img){const cv=$('ltCv');cv.innerHTML='';const im=document.createElement('img');im.src=dc.img;cv.append(im)}
@@ -3226,8 +3271,10 @@ async function playSong(i){
   try{await au.play()}catch(e){toast('无法自动播放，点播放键重试')}
   ltPaint();save();
 }
-au.onplay=au.onpause=ltPaint;au.ontimeupdate=au.onloadedmetadata=ltProg;
-au.onended=()=>playSong(G.listen.idx+1);
+au.onplay=()=>{if(lt.on&&!lt.runSince)lt.runSince=Date.now();ltPaint()};
+au.onpause=()=>{if(lt.runSince){lt.elapsed+=Math.max(0,Math.floor((Date.now()-lt.runSince)/1000));lt.runSince=0}ltPaint()};
+au.ontimeupdate=au.onloadedmetadata=ltProg;
+au.onended=()=>{const L=G.listen,mode=L.mode||'list';if(mode!=='one'&&L.idx===L.songs.length-1&&mode==='order'&&lt.runSince){lt.elapsed+=Math.max(0,Math.floor((Date.now()-lt.runSince)/1000));lt.runSince=0}if(mode==='one'){au.currentTime=0;au.play().catch(()=>{});return}if(L.idx<L.songs.length-1){playSong(L.idx+1);return}if(mode==='list'&&L.songs.length){playSong(0);return}au.pause();ltPaint()};
 au.onerror=()=>{if(au.getAttribute('src'))toast('这首歌无法播放：链接失效、需要会员或平台限制')};
 $('ltPlay').onclick=$('lmP').onclick=e=>{e.stopPropagation();if(!sg())return openLT();if(!au.getAttribute('src'))playSong(G.listen.idx);else if(au.paused)au.play().catch(()=>{});else au.pause()};
 $('ltPrev').onclick=()=>playSong(G.listen.idx-1);$('ltNext').onclick=()=>playSong(G.listen.idx+1);
@@ -3235,12 +3282,12 @@ const sk=$('ltSeek');sk.oninput=()=>{lt.drag=true;if(au.duration>0)$('ltCur').te
 sk.onchange=()=>{if(au.duration>0)au.currentTime=au.duration*sk.value/1000;lt.drag=false};
 const logLT=(ct,text)=>{ct.msgs.push({id:Date.now()+Math.random(),mine:false,type:'call',text,t:Date.now()});save();refreshFor(ct)};
 function openLT(){
-  if(!lt.on){lt.on=true;lt.t0=Date.now();lt.ct=cur();logLT(lt.ct,'你邀请 '+lt.ct.profile.name+' 一起听歌')}
+  if(!lt.on){lt.on=true;lt.elapsed=0;lt.runSince=0;lt.t0=Date.now();lt.ct=cur();logLT(lt.ct,'你邀请 '+lt.ct.profile.name+' 一起听歌')}
   lp.hidden=false;ltPaint();ltProg();if(!G.listen.songs.length)setTimeout(addDlg,250);
 }
 function endLT(){
-  au.pause();lp.hidden=true;const ct=lt.ct,secs=Math.floor((Date.now()-lt.t0)/1000);
-  lt.on=false;lt.ct=null;ltPaint();if(ct)logLT(ct,'一起听结束 · '+mm(secs));
+  au.pause();lp.hidden=true;const ct=lt.ct,secs=listenSeconds();
+  lt.on=false;lt.elapsed=0;lt.runSince=0;lt.ct=null;ltPaint();if(ct)logLT(ct,'一起听结束 · '+mm(secs));
 }
 $('ltMin').onclick=()=>{lp.hidden=true};
 $('ltEnd').onclick=()=>askYes('结束一起听？播放列表会保留。',endLT,'结束');
@@ -3332,7 +3379,9 @@ function discDlg(){
   },[['完成',null,'primary']]);
 }
 lp.querySelector('.lt-disc').onclick=discDlg;
+$('ltMode').onclick=()=>{const modes=['one','list','order'],i=modes.indexOf(G.listen.mode||'list');G.listen.mode=modes[(i+1)%modes.length];save();paintListenMode();toast('播放模式：'+modeNames[G.listen.mode])};
 $('ltAdd').onclick=addDlg;$('ltList').onclick=listDlg;
+setInterval(()=>{if(lt.on){paintListenTime()}},1000);
 $('ltT').onclick=()=>{const s=sg();if(!s)return;let a,b2;
   modal('编辑歌曲',b=>{a=h('input');a.value=s.title;a.placeholder='歌名';b2=h('input');b2.value=s.artist;b2.placeholder='歌手';b2.style.marginTop='8px';
     const c=h('button','','更换封面');c.style.marginTop='8px';c.onclick=()=>pickFile(600,.8,u=>{s.cover=u;save();ltPaint()});b.append(a,b2,c)},
@@ -3818,4 +3867,75 @@ html,body{overscroll-behavior:none}
 .cmsg.emo{font-size:32px!important;line-height:1.2}
 .cmsg.ty{padding:6px 0!important}
 .cmsg.ty i{background:rgba(255,255,255,.9)!important}
+</style>
+
+<style id="layout-header-ref">
+/* ===== 「参考图」排版：顶栏只有居中的昵称 + 浅灰 ID（经典排版保持最初的顶栏） ===== */
+html.cs-ref body #app header{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;position:relative!important;min-height:0!important;padding:14px 60px 10px!important;border-bottom:1px solid var(--line)!important}
+html.cs-ref body #app header .who{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:2px!important;width:auto!important;max-width:100%!important;transform:none!important;margin:0!important}
+html.cs-ref body #app header .pairAv{display:none!important}
+html.cs-ref body #app header .wt{order:2!important;flex:none!important;display:flex!important;flex-direction:column!important;align-items:center!important;text-align:center!important;margin:0!important;max-width:100%!important}
+html.cs-ref body #app header .nm{font-size:17px!important;font-weight:600!important;line-height:1.25!important;text-align:center!important;max-width:70vw!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.cs-ref body #app header .st{font-size:12px!important;line-height:1.2!important;margin-top:2px!important;text-align:center!important;color:#b4b4ba!important}
+html.cs-ref body #app header .st:empty{display:none!important}
+html.cs-ref body #app header .hr{position:absolute!important;top:6px!important;right:8px!important;transform:none!important}
+html.cs-ref body #app header #back{display:none!important}
+
+/* ===== 聊天气泡「参考图」：按参考截图逐项量过 ===== */
+html.cs-ref{--bm:#dde8f3;--bmc:#1c1c1e;--bt:#f2f2f2;--btc:#111}
+@media(prefers-color-scheme:dark){html.cs-ref{--bm:#3a4a5f;--bmc:#f2f2f7;--bt:#2c2c2e;--btc:#f2f2f7}}
+html.cs-ref #chat{padding:4px 13px 16px!important}
+html.cs-ref #chat .r.rf{display:flex!important;flex-direction:row!important;align-items:flex-end!important;gap:8px!important;padding:0!important;margin-top:5px!important}
+html.cs-ref #chat .r.rf.first{margin-top:21px!important}
+html.cs-ref #chat .r.rf.mine{justify-content:flex-end!important}
+html.cs-ref #chat .r.rf.theirs{justify-content:flex-start!important}
+html.cs-ref #chat .r.rf>.av2,html.cs-ref #chat .r.rf>.avsp{width:33px!important;height:33px!important;flex:none!important;align-self:flex-start!important;border-radius:7px!important}
+html.cs-ref #chat .r.rf>.avsp{visibility:hidden}
+html.cs-ref #chat .r.rf>.m{margin:0!important;align-self:auto!important;flex:0 1 auto;min-width:0}
+html.cs-ref #chat .r.rf>.m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots){max-width:70%!important;padding:6px 10px!important;font-size:var(--fs,14px)!important;font-weight:600;line-height:1.4!important;border-radius:var(--br,16px)!important;box-shadow:none!important;border:0!important}
+/* 每一段内的圆角：对方=右圆左方（段首左下方，段尾左上方），我方镜像；单条整段全圆 */
+html.cs-ref #chat .r.rf.theirs>.m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots){border-radius:min(5px,var(--br,16px)) var(--br,16px) var(--br,16px) min(5px,var(--br,16px))!important}
+html.cs-ref #chat .r.rf.theirs.first>.m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots){border-radius:var(--br,16px) var(--br,16px) var(--br,16px) min(5px,var(--br,16px))!important}
+html.cs-ref #chat .r.rf.theirs.last>.m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots){border-radius:min(5px,var(--br,16px)) var(--br,16px) var(--br,16px) var(--br,16px)!important}
+html.cs-ref #chat .r.rf.mine>.m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots){border-radius:var(--br,16px) min(5px,var(--br,16px)) min(5px,var(--br,16px)) var(--br,16px)!important}
+html.cs-ref #chat .r.rf.mine.first>.m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots){border-radius:var(--br,16px) var(--br,16px) min(5px,var(--br,16px)) var(--br,16px)!important}
+html.cs-ref #chat .r.rf.mine.last>.m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots){border-radius:var(--br,16px) min(5px,var(--br,16px)) var(--br,16px) var(--br,16px)!important}
+html.cs-ref #chat .r.rf.first.last>.m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots){border-radius:var(--br,16px)!important}
+html.cs-ref #chat .r.rf>.m .mt{display:none!important}
+html.cs-ref #chat .r.rf>.m.dots{padding:12px 14px!important;border-radius:16px!important}
+html.cs-ref #chat .r.rf>.ts{flex:none;align-self:flex-end;font-size:11px;line-height:1;color:#b0b0b6;padding-bottom:5px;white-space:nowrap;font-variant-numeric:tabular-nums;-webkit-user-select:none;user-select:none}
+html.cs-ref #chat .qline{display:flex!important;align-items:center!important;gap:7px!important;width:fit-content!important;max-width:calc(100% - 41px)!important;box-sizing:border-box;min-height:15px!important;margin:4px 0 0!important;padding-top:0!important;padding-bottom:0!important;font-size:11px!important;line-height:15px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.cs-ref #chat .qline b{color:#8fa3c6!important;font-weight:500!important}
+html.cs-ref #chat .qline span{color:#9a9ea5!important}
+html.cs-ref #chat .qline.theirs{align-self:flex-start!important;margin-left:41px!important;padding-left:6px!important;border-left:3px solid #b6bfcd!important;border-right:0!important}
+html.cs-ref #chat .qline.mine{align-self:flex-end!important;margin-right:41px!important;padding-right:7px!important;border-right:3px solid #b6bfcd!important;border-left:0!important}
+html.cs-ref #chat .qline+.r.rf{margin-top:4px!important}
+html.cs-ref #chat .r.rf .avw{position:relative;flex:none;width:33px;height:33px;align-self:flex-start}
+html.cs-ref #chat .r.rf .avw .av2{width:100%!important;height:100%!important;border-radius:7px!important}
+html.cs-ref #chat .r.rf.hasst{margin-top:36px!important}
+
+/* ===== 整体背景纯白（浅色模式） ===== */
+@media(prefers-color-scheme:light){
+  :root{--bg:#fff}
+  html,body,#app,#chat,header,footer,.bar,#list,#cardsPage,#cfgPage{background-color:#fff!important}
+  #modal .panel,#sheet .panel,.sheet .panel{background-color:#fff!important}
+}
+
+/* 最终覆盖：每个连续消息段仅末条显示时间，消息文字使用常规字重，字卡库黑白 */
+#chat .gh .gt{display:none!important}
+#chat .r>.ts{display:block!important;flex:none!important;align-self:flex-end!important;font-size:10px!important;line-height:1!important;font-weight:400!important;color:var(--mute)!important;padding:0 2px 5px!important;white-space:nowrap!important;font-variant-numeric:tabular-nums!important;opacity:.8!important}
+html.cs-ref #chat .r.rf>.ts{font-size:10px!important;font-weight:400!important;color:#999!important}
+#chat .m:not(.dots){font-weight:400!important}
+#chat .m .tx{font-weight:400!important}
+html.cs-ref #chat .r.rf>.m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots){font-weight:400!important}
+#cardsPage{background:#fff!important;color:#111!important}
+#cardsPage .cp-head{background:#fff!important;color:#111!important;border-bottom:1px solid #d6d6d6!important}
+#cardsPage .cp-head button{background:#f5f5f5!important;color:#111!important;border-color:#c9c9c9!important}
+#cardsPage .cp-title{color:#111!important}
+#cardsPage #cpSearch{background:#f5f5f5!important;color:#111!important;border-color:#c9c9c9!important;box-shadow:none!important}
+#cardsPage .chip{background:#f5f5f5!important;color:#222!important;border-color:#c9c9c9!important}
+#cardsPage .chip.on{background:#111!important;color:#fff!important;border-color:#111!important}
+#cardsPage .cp-actions button,#cardsPage #cpBar button,#cardsPage .mini{background:#f5f5f5!important;color:#111!important;border-color:#c9c9c9!important}
+#cardsPage #cpBar{background:#fff!important;border-top:1px solid #d6d6d6!important}
+@media(prefers-color-scheme:dark){#cardsPage{background:#000!important;color:#f5f5f5!important}#cardsPage .cp-head,#cardsPage #cpBar{background:#000!important;color:#f5f5f5!important;border-color:#444!important}#cardsPage .cp-head button,#cardsPage #cpSearch,#cardsPage .chip,#cardsPage .cp-actions button,#cardsPage #cpBar button,#cardsPage .mini{background:#171717!important;color:#f5f5f5!important;border-color:#555!important}#cardsPage .cp-title{color:#f5f5f5!important}#cardsPage .chip.on{background:#f5f5f5!important;color:#000!important;border-color:#f5f5f5!important}}
 </style>
