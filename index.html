@@ -1305,7 +1305,7 @@ html.cs-ref #chat .r.rf>.m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots){f
 .lt-row b,.lt-row small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lt-row small{color:var(--mute);font-size:12px}
 .lt-row button{flex:none;width:34px!important;padding:6px!important;background:none!important;color:var(--mute)!important}
-#ltMini{position:fixed;z-index:45;left:0;top:0;display:flex;align-items:center;gap:8px;padding:5px 6px 5px 5px;border-radius:26px;max-width:210px;background:rgba(255,255,255,.62);-webkit-backdrop-filter:blur(22px) saturate(1.8);backdrop-filter:blur(22px) saturate(1.8);border:1px solid rgba(255,255,255,.85);color:#1c1c1e;font-size:13px;box-shadow:0 6px 22px rgba(0,0,0,.14);touch-action:none;-webkit-user-select:none;user-select:none}
+#ltMini{position:fixed;z-index:45;left:0;top:0;display:flex;align-items:center;gap:8px;padding:5px 6px 5px 5px;border-radius:26px;max-width:210px;background-color:rgba(255,255,255,.62);background-position:center;background-size:cover;background-repeat:no-repeat;-webkit-backdrop-filter:blur(22px) saturate(1.8);backdrop-filter:blur(22px) saturate(1.8);border:1px solid rgba(255,255,255,.85);color:#1c1c1e;font-size:13px;box-shadow:0 6px 22px rgba(0,0,0,.14);touch-action:none;-webkit-user-select:none;user-select:none}
 @media(prefers-color-scheme:dark){#ltMini{background:rgba(28,28,30,.68);border-color:rgba(255,255,255,.14);color:#fff;box-shadow:0 6px 22px rgba(0,0,0,.5)}}
 .lm-cv{flex:none;width:32px;height:32px;animation:ltspin 8s linear infinite;animation-play-state:paused}
 .lm-t{min-width:0;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1315,7 +1315,7 @@ html.cs-ref #chat .r.rf>.m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots){f
 <script>
 (()=>{
 const $=id=>document.getElementById(id);
-const DEF_CFG={minDelay:30,maxDelay:120,cardMin:1,cardMax:3,emojiMix:true,patProb:13,quoteProb:20,callProb:5,callRejectProb:20,keepAlive:false,notify:false,stickerProb:20,emojiProb:20,spliceOn:true,readOn:true,spliceProb:30,spliceMin:2,spliceMax:3,readProb:10,pollMin:3,pollMax:10,momLikeProb:80,momCommentProb:60,momReplyProb:60,momMin:20,momMax:300,momDaily:1,idleMin:10,listenSwitchProb:5,callMinDelay:1,callMaxDelay:4,callCardMin:1,callCardMax:2,callEmojiProb:20,callSpliceProb:30,statusOn:true,statusHours:6,statusProb:100,transferOn:true,transferProb:5,transferAcceptProb:80,transferMin:3,transferMax:15,transferAmtMin:1,transferAmtMax:200};
+const DEF_CFG={minDelay:30,maxDelay:120,cardMin:1,cardMax:3,emojiMix:true,patProb:13,quoteProb:20,callProb:5,callRejectProb:20,keepAlive:false,notify:false,stickerProb:20,emojiProb:20,spliceOn:true,readOn:true,spliceProb:30,spliceMin:2,spliceMax:3,readProb:10,pollMin:3,pollMax:10,momLikeProb:80,momCommentProb:60,momReplyProb:60,momMin:20,momMax:300,momDaily:1,momentsOn:true,idleMin:10,listenSwitchProb:5,callMinDelay:1,callMaxDelay:4,callCardMin:1,callCardMax:2,callEmojiProb:20,callSpliceProb:30,statusOn:true,statusHours:6,statusProb:100,transferOn:true,transferProb:5,transferAcceptProb:80,transferMin:3,transferMax:15,transferAmtMin:1,transferAmtMax:200};
 const G={contacts:[],cur:null,cards:[],groups:[{id:'public',name:'公共（未分组）',enabled:true}],cardSeq:1,polls:[],skin:{bm:'',bmc:'',bt:'',btc:'',br:0,fs:0,css:'',tg:'both',notail:false},skins:[],sys:{keepAlive:false,notify:false}};
 const ctOf=id=>G.contacts.find(c=>c.id===id);
 const cur=()=>ctOf(G.cur);
@@ -1347,7 +1347,7 @@ const CK2='<svg viewBox="0 0 24 24"><path d="M2 12.5l4.5 4.5L15.5 7.5M10 15.5l1.
 function fmtDate(t){return new Date(t).toLocaleDateString('zh-CN',{year:'numeric',month:'numeric',day:'numeric'})}
 function dayLabel(t){const d=new Date(t),n=new Date();if(d.toDateString()===n.toDateString())return '今天';const y=new Date(n);y.setDate(n.getDate()-1);if(d.toDateString()===y.toDateString())return '昨天';return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日'}
 function qLine(m){const q=h('div','qline '+(m.mine?'mine':'theirs'));q.append(h('b','','@'+(m.reply.mine?(S.profile.myName||'我'):(S.profile.name||'对方'))),h('span','',m.reply.text));return q}
-function grpHead(mine,t){const g=h('div','gh '+(mine?'mine':'theirs')),i=h('div','gi');i.append(h('span','gn',mine?(S.profile.myName||'我'):(S.profile.name||'对方')),h('span','gt',hhmm(t)));g.append(mkAv(mine),i);return g}
+function grpHead(mine,t){const g=h('div','gh '+(mine?'mine':'theirs')),i=h('div','gi');i.append(h('span','gn',mine?(S.profile.myName||'我'):(S.profile.name||'对方')));g.append(mkAv(mine),i);return g}
 const metaEl=m=>{const s=h('span','mt');s.append(document.createTextNode(hhmm(m.t)));return s};
 function render(keep){
   const ct=cur();if(!ct)return;
@@ -1356,7 +1356,7 @@ function render(keep){
   S.msgs.forEach((x,k)=>{if(x.mine&&x.type!=='pat'&&x.type!=='call')lastMine=k});
   for(let i=0;i<S.msgs.length;i++){
     const m=S.msgs[i],dk=new Date(m.t).toDateString(),dayNew=dk!==prevDay;
-    if(dayNew){prevDay=dk;const ds=h('div','dsep');ds.append(h('span','',dayLabel(m.t)),h('span','',hhmm(m.t)));c.append(ds)}
+    if(dayNew){prevDay=dk;const ds=h('div','dsep');ds.append(h('span','',dayLabel(m.t)));c.append(ds)}
     if(m.type==='redpacket')continue;
     if(m.type==='pat'||m.type==='call'){const lg=m.logId&&(ct.callLogs||[]).some(x=>x.id===m.logId);const d=h('div',m.type==='pat'?'pat':'sysln',lg?m.text+' ›':m.text);d.dataset.id=m.id;if(lg){d.style.cursor='pointer';d.onclick=()=>openCallLogs(m.logId)}c.append(d);continue}
     const p=S.msgs[i-1];
@@ -1373,7 +1373,7 @@ function render(keep){
     else if(m.type==='emoji'){e.className='m emo';e.append(document.createTextNode(m.text))}
     else{
       e.className='m';
-      e.append(h('span','tx',m.text),metaEl(m));
+      e.append(h('span','tx',m.text));
     }
     const nx2=S.msgs[i+1];
     if(!nx2||nx2.type==='pat'||nx2.type==='call'||nx2.mine!==m.mine||new Date(nx2.t).toDateString()!==dk)r.classList.add('last');
@@ -1383,9 +1383,8 @@ function render(keep){
         if(REF){
       r.classList.add('rf');
       const av=first?mkAv(m.mine):h('div','avsp');
-      if(r.classList.contains('last')){const ts=h('span','ts',hhmm(m.t));if(m.mine)r.append(ts,e,av);else r.append(av,e,ts)}
-      else if(m.mine)r.append(e,av);else r.append(av,e);
-    }else{r.append(e);if(r.classList.contains('last'))r.append(h('span','ts',hhmm(m.t)))}
+      if(m.mine)r.append(e,av);else r.append(av,e);
+    }else{r.append(e)}
     c.append(r);
   }
   if(rt(ct).typing){const REF2=S.skin.layout==='ref';if(!REF2)c.append(grpHead(false,Date.now()));const r=h('div','r theirs first last'),d=h('div','m dots');d.innerHTML='<i></i><i></i><i></i>';if(REF2){r.classList.add('rf');r.append(mkAv(false),d)}else r.append(d);c.append(r)}
@@ -1613,7 +1612,7 @@ $('sheetPlus').querySelectorAll('button').forEach(b=>b.onclick=()=>{
 /* 回复设置：改完立即保存 */
 const FIELDS=[['minDelay','对方回复最快（秒）',1,3600],['maxDelay','对方回复最慢（秒）',1,3600],['cardMin','每次回复字卡最少张数',1,10],['cardMax','每次回复字卡最多张数',1,10],['patProb','对方拍一拍概率 %',0,100],['callProb','对方主动来电概率 %',0,100],['callRejectProb','对方拒接我的电话概率 %',0,100],['quoteProb','对方引用我的消息概率 %',0,100],['stickerProb','对方回复变成表情包的概率 %',0,100],['emojiProb','对方回复变成 Emoji 的概率 %',0,100],['spliceProb','对方拼字卡概率 %',0,100],['spliceMin','拼字卡最少拼几句',2,10],['spliceMax','拼字卡最多拼几句',2,10],['readProb','对方已读不回概率 %',0,100],['pollMin','对方最快几秒做出选择',1,3600],['pollMax','对方最慢几秒做出选择',1,3600],['momLikeProb','对方给我的动态点赞概率 %',0,100],['momCommentProb','对方评论我的动态概率 %',0,100],['momReplyProb','对方回复我的评论概率 %',0,100],['momMin','对方最快几秒来互动',1,86400],['momMax','对方最慢几秒来互动',1,86400],['momDaily','对方一天最多主动发几条动态（0=不发）',0,10],['idleMin','聊天页无操作几分钟后对方主动发消息（0=关闭）',0,1440],['listenSwitchProb','一起听时对方切歌概率',0,100],['callMinDelay','通话中对方回复最快（秒）',1,60],['callMaxDelay','通话中对方回复最慢（秒）',1,60],['callCardMin','通话每次回复字卡最少张数',1,10],['callCardMax','通话每次回复字卡最多张数',1,10],['callEmojiProb','通话回复变成 Emoji 的概率 %',0,100],['callSpliceProb','通话回复拼字卡概率 %',0,100],['statusHours','对方每隔几小时换一次状态',1,720],['statusProb','到点后真的换状态的概率 %',0,100],['transferProb','对方主动转账概率 %',0,100],['transferAcceptProb','对方收下我转账的概率 %',0,100],['transferMin','对方处理我的转账最快（秒）',1,3600],['transferMax','对方处理我的转账最慢（秒）',1,3600],['transferAmtMin','对方转账金额最小（元）',1,99999],['transferAmtMax','对方转账金额最大（元）',1,99999]];
 const DEC=new Set([]);
-const SWITCHES=[['emojiMix','表情包 / Emoji 混合发送'],['spliceOn','启用拼字卡'],['readOn','启用已读不回'],['statusOn','启用对方状态字卡'],['transferOn','启用转账（总开关）']];
+const SWITCHES=[['emojiMix','表情包 / Emoji 混合发送'],['spliceOn','启用拼字卡'],['readOn','启用已读不回'],['statusOn','对方状态字卡（关闭后不显示）'],['momentsOn','启用对方主动发布动态'],['transferOn','启用转账（总开关）']];
 const CFG_GROUPS=[
   ['通用',['idleMin']],
   ['字卡回复',['minDelay','maxDelay','cardMin','cardMax','quoteProb','stickerProb','emojiProb']],
@@ -1625,7 +1624,7 @@ const CFG_GROUPS=[
   ['通话字卡',['callMinDelay','callMaxDelay','callCardMin','callCardMax','callEmojiProb','callSpliceProb']],
   ['转账',['transferOn','transferProb','transferAcceptProb','transferMin','transferMax','transferAmtMin','transferAmtMax']],
   ['抉择',['pollMin','pollMax']],
-  ['朋友圈',['momLikeProb','momCommentProb','momReplyProb','momMin','momMax','momDaily']],
+  ['朋友圈',['momentsOn','momLikeProb','momCommentProb','momReplyProb','momMin','momMax','momDaily']],
   ['一起听',['listenSwitchProb']],
   ['后台',[]]
 ];
@@ -1637,7 +1636,7 @@ const TAB_HINT={
   '状态':'状态字卡只显示在头像上方的小气泡里（聊天里的头像和通话界面）。对方会从已选用分组的「状态字卡」里自己挑一条；每隔设定的小时数到点一次，再按概率决定真的换不换（概率 100 就是每次必换）。字卡库添加字卡时选「状态字卡」即可。你自己的状态：加号面板里的「我的状态」，或点聊天里最新那个我的头像。',
   '通话字卡':'通话接通后，点一下对方头像，对方会在最快和最慢之间随机等一会儿，再发出几张字卡（文字 / Emoji，不含表情包）。挂断后这次通话里对方发的字卡会保存到加号面板的「通话记录」里。',
   '打电话':'对方回复完之后，按这个概率给你打电话；拒接概率是你打过去时对方拒接的几率。',
-  '朋友圈':'你发动态后，对方会在最快和最慢之间随机等一会儿，再按概率点赞、评论；你回复他的评论、评论他的动态，他也会按概率回复。对方每天主动发的动态时间随机排在 9 点到 23 点之间。',
+  '朋友圈':'关闭「启用对方主动发布动态」后，对方不会再自动发布新动态；你发动态后的点赞和评论互动仍按概率进行。你发动态后，对方会在最快和最慢之间随机等一会儿，再按概率点赞、评论；你回复他的评论、评论他的动态，他也会按概率回复。对方每天主动发的动态时间随机排在 9 点到 23 点之间。',
   '抉择':'你发出问卷后，对方会在最快和最慢之间随机等一会儿，再按每个问题的单选 / 多选规则做出选择。',
   '拼字卡':'每条文字回复按这个概率，把几张字卡拼成一条长消息，一次拼几句在最少和最多之间随机；字卡库里可用的文字字卡不够时会自动少拼。',
   '一起听':'一起听播放期间，每分钟按此概率判断一次；触发后对方会随机切换到播放列表中的另一首歌，并在聊天记录中提示。设置为 0 即关闭。',
@@ -1947,7 +1946,7 @@ function stickerDlg(){
         if(mg){
           t.append(h('span','x','×'));
           t.onclick=()=>{S.cards=S.cards.filter(x=>x!==c);save();draw();if(!$('cardsPage').hidden)renderCards()};
-        }else t.onclick=()=>{$('modal').hidden=true;push({id:Date.now(),mine:true,type:'image',sticker:true,src:c.content,t:Date.now(),read:false})};
+        }else t.onclick=()=>{const now=Date.now();$('modal').hidden=true;push({id:now+Math.random(),mine:true,type:'image',sticker:true,src:c.content,t:now,read:false});};
         g.append(t);
       });
       b.append(g);
@@ -3182,6 +3181,7 @@ function checkMoments(){
   G.contacts.forEach(ct=>{
     const due=ct.momPending.filter(p=>p.due<=now);
     if(due.length){ct.momPending=ct.momPending.filter(p=>p.due>now);due.forEach(p=>runMom(ct,p));save()}
+    if(ct.cfg.momentsOn===false){ct.momPlan=null;return}
     const cap=ct.cfg.momDaily;
     if(!ct.momDay||ct.momDay.day!==today)ct.momDay={day:today,count:0};
     if(!ct.momPlan||ct.momPlan.day!==today){
@@ -3203,7 +3203,7 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 
 /* ========== 一起听 ========== */
 G.listen={songs:[],idx:0};
-const lt={on:false,t0:0,elapsed:0,runSince:0,ct:null,url:''},au=new Audio();au.preload='metadata';
+const lt={on:false,t0:0,elapsed:0,runSince:0,ct:null,url:''},au=new Audio();au.preload='auto';au.setAttribute('playsinline','');
 G.listen.mode=G.listen.mode||'list';
 const svg=(d,f)=>'<svg viewBox="0 0 24 24" '+(f?'fill="currentColor"':'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"')+'>'+d+'</svg>';
 const IC2={play:svg('<path d="M8 5v14l11-7z"/>',1),pause:svg('<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>',1),prev:svg('<path d="M6 5h2v14H6zM20 5v14L9 12z"/>',1),next:svg('<path d="M16 5h2v14h-2zM4 5l11 7L4 19z"/>',1),list:svg('<path d="M4 7h11M4 12h11M4 17h7M18 13v7M14.5 16.5h7"/>'),add:svg('<path d="M12 5v14M5 12h14"/>'),down:svg('<path d="M6 9l6 6 6-6"/>'),x:svg('<path d="M6 6l12 12M18 6 6 18"/>'),note:svg('<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>')};
@@ -3225,30 +3225,33 @@ function ltPaint(){
   $('ltWho').textContent=(pf.name||'对方')+' & '+(pf.myName||'我')+(lt.on?' · 正在一起听':'');paintListenTime();paintListenMode();
   coverTo($('ltCv'),s);coverTo($('lmCv'),s);
   const dc=G.listen.disc||{};
-  if(dc.img){const cv=$('ltCv');cv.innerHTML='';const im=document.createElement('img');im.src=dc.img;cv.append(im)}
+  if(dc.img){for(const cv of [$('ltCv'),$('lmCv')]){cv.innerHTML='';const im=document.createElement('img');im.src=dc.img;cv.append(im)}}
   lp.classList.toggle('lt-nodisc',!!dc.hide);
   $('ltT').textContent=s?s.title:'还没有歌曲';$('ltAr').textContent=s?(s.artist||'点标题可编辑歌曲信息'):'点左下角 + 导入音乐链接';
   const bg=G.listen.bg||'';document.querySelector('#lt .lt-bg').style.backgroundImage=bg?'url("'+bg+'")':(s&&s.cover?'url("'+s.cover+'")':'');lp.classList.toggle('lt-custom-bg',!!bg);
+  const miniBg=G.listen.miniBg||'';mn.style.backgroundImage=miniBg?'linear-gradient(rgba(255,255,255,.42),rgba(255,255,255,.42)),url("'+miniBg+'")':'';mn.classList.toggle('lm-custom-bg',!!miniBg);
   $('ltPlay').innerHTML=$('lmP').innerHTML=pl?IC2.pause:IC2.play;
   $('lmT').textContent=s?s.title:'一起听';
   lp.classList.toggle('playing',pl);mn.classList.toggle('lm-on',pl);
 }
 function ltProg(){
-  const d=au.duration,c=au.currentTime;$('ltCur').textContent=mm(c);$('ltDur').textContent=mm(d);
-  if(!lt.drag)$('ltSeek').value=d>0?Math.round(c/d*1000):0;
+  const d=au.duration,c=au.currentTime,ready=au.readyState>=1&&Number.isFinite(d)&&d>0;
+  $('ltCur').textContent=mm(c);$('ltDur').textContent=ready?mm(d):'读取中';
+  if(!lt.drag)$('ltSeek').value=ready?Math.round(c/d*1000):0;
 }
 async function playSong(i){
   const L=G.listen;if(!L.songs.length)return;L.idx=(i+L.songs.length)%L.songs.length;const s=sg();let src=s.src;
   if(s.kind==='file'){const b=await kv.get('mus'+s.id);if(!b){toast('本地音频已丢失，请重新导入');return}if(lt.url)URL.revokeObjectURL(lt.url);src=lt.url=URL.createObjectURL(b)}
-  au.src=src;ltPaint();
-  try{await au.play()}catch(e){toast('无法自动播放，点播放键重试')}
+  au.pause();au.removeAttribute('src');au.load();
+  au.src=src;au.load();ltProg();ltPaint();
+  try{await au.play()}catch(e){toast('歌曲已加入列表，但无法播放。请检查音频链接是否仍有效，或服务器是否限制外部播放');}
   ltPaint();save();
 }
 au.onplay=()=>{if(lt.on&&!lt.runSince)lt.runSince=Date.now();ltPaint()};
 au.onpause=()=>{if(lt.runSince){lt.elapsed+=Math.max(0,Math.floor((Date.now()-lt.runSince)/1000));lt.runSince=0}ltPaint()};
-au.ontimeupdate=au.onloadedmetadata=ltProg;
+au.ontimeupdate=ltProg;au.onloadedmetadata=ltProg;au.ondurationchange=ltProg;au.oncanplay=ltProg;au.onloadeddata=ltProg;
 au.onended=()=>{const L=G.listen,mode=L.mode||'list';if(mode!=='one'&&L.idx===L.songs.length-1&&mode==='order'&&lt.runSince){lt.elapsed+=Math.max(0,Math.floor((Date.now()-lt.runSince)/1000));lt.runSince=0}if(mode==='one'){au.currentTime=0;au.play().catch(()=>{});return}if(L.idx<L.songs.length-1){playSong(L.idx+1);return}if(mode==='list'&&L.songs.length){playSong(0);return}au.pause();ltPaint()};
-au.onerror=()=>{if(au.getAttribute('src'))toast('这首歌无法播放：链接失效、需要会员或平台限制')};
+au.onerror=()=>{ltProg();if(au.getAttribute('src')){const code=au.error&&au.error.code;const why=code===2?'网络读取失败':code===3?'音频文件格式或编码不受支持':code===4?'服务器拒绝提供音频或链接不是可播放文件':'音频加载失败';toast('这首歌无法播放：'+why+'。可尝试重新复制音频直链');}};
 $('ltPlay').onclick=$('lmP').onclick=e=>{e.stopPropagation();if(!sg())return openLT();if(!au.getAttribute('src'))playSong(G.listen.idx);else if(au.paused)au.play().catch(()=>{});else au.pause()};
 $('ltPrev').onclick=()=>playSong(G.listen.idx-1);$('ltNext').onclick=()=>playSong(G.listen.idx+1);
 const sk=$('ltSeek');sk.oninput=()=>{lt.drag=true;if(au.duration>0)$('ltCur').textContent=mm(au.duration*sk.value/1000)};
@@ -3293,23 +3296,33 @@ setInterval(()=>{
 /* 导入：解析链接 / 网易云分享文字 / 本地文件 */
 const BAD=/(y\.qq|qq\.com|kugou|kuwo|spotify|apple\.com|youtube|youtu\.be|bilibili|b23\.tv|xiami|163cn\.tv)/i;
 function parseLinks(txt){
-  const out=[];let bad=0;
-  txt.split(/\n+/).forEach(line=>{
-    const u=(line.match(/https?:\/\/[^\s"'<>，。）)]+/)||[])[0];if(!u)return;
-    const t=(line.match(/《([^》]+)》/)||[])[1]||'',who=(line.match(/分享(.+?)的/)||[])[1]||'';
-    if(/163\.com/i.test(u)){
-      const id=(u.match(/[?&]id=(\d+)/)||[])[1];
+  const out=[];let bad=0;const seen=new Set();
+  // 支持一行多条链接，也支持复制网易云分享卡片时夹带的说明文字
+  const urls=String(txt||'').match(/https?:\/\/[^\s"'<>，。）》)]+/g)||[];
+  urls.forEach(raw=>{
+    const u=raw.replace(/[.,;!?，。；！？]+$/,'');if(seen.has(u))return;seen.add(u);
+    const t=(String(txt).match(/《([^》]+)》/)||[])[1]||'';
+    const who=(String(txt).match(/分享(.+?)的/)||[])[1]||'';
+    if(/(?:music\.163\.com|163cn\.tv)/i.test(u)){
+      const id=(u.match(/[?&#]id=(\d+)/i)||u.match(/\/song\/(\d+)/i)||[])[1];
       if(!id||/playlist|album|djradio|program/i.test(u)){bad++;return}
-      out.push({title:t||'网易云歌曲 '+id,artist:who,src:'https://music.163.com/song/media/outer/url?id='+id+'.mp3',kind:'163'});
-    }else if(BAD.test(u)){bad++}
-    else out.push({title:t||decodeURIComponent((u.split('?')[0].split('/').pop()||'音频').replace(/\.\w+$/,'')),artist:who,src:u,kind:'url'});
+      out.push({title:t||'网易云歌曲 '+id,artist:who,src:'https://music.163.com/song/media/outer/url?id='+id+'.mp3',kind:'163'});return;
+    }
+    if(BAD.test(u)){bad++;return}
+    if(/\.(mp3|m4a|aac|wav|ogg|oga|opus|flac)(?:$|[?#])/i.test(u)||/\/audio\//i.test(u)||/\.(mp3|m4a|aac|wav|ogg|oga|opus|flac)(?:%3[fF]|%23|$)/i.test(u)){
+      // 音频元素不强制设置 crossOrigin：很多可播放直链并未开放 CORS，设置后反而会阻止播放。
+      let fn=u.split('?')[0].split('#')[0].split('/').pop()||'音频';try{fn=decodeURIComponent(fn)}catch(e){}
+      out.push({title:t||fn.replace(/\.[^.]+$/,''),artist:who,src:u,kind:'url'});return;
+    }
+    // 其余链接只有在看起来是音频直链时才加入，避免把普通网页误当歌曲
+    bad++;
   });
   return {out,bad};
 }
 function addSongs(list){
   const L=G.listen,first=L.songs.length,fresh=!au.getAttribute('src');
   list.forEach(x=>L.songs.push({id:Date.now()+Math.random().toString(36).slice(2,6),cover:'',...x}));
-  save();ltPaint();if(fresh||au.paused&&!first)playSong(first);
+  save();ltPaint();if(fresh||au.paused&&!first)playSong(first);else toast('已加入播放列表 '+list.length+' 首');
 }
 function addDlg(){
   let ta;
@@ -3323,7 +3336,7 @@ function addDlg(){
     b.append(ta,h('div','hint','QQ音乐、酷狗、Spotify 等平台没有公开直链，无法直接播放；网易云的 VIP / 无版权歌曲也可能播不出来。'),f);
   },[['取消'],['导入',()=>{const {out,bad}=parseLinks(ta.value);
     if(!out.length){toast(bad?'这个平台或链接类型暂不支持播放':'没有识别到链接');return false}
-    if(bad)toast('已导入 '+out.length+' 首，'+bad+' 个链接不支持');addSongs(out)},'primary']]);
+    if(bad)toast('已导入 '+out.length+' 首，'+bad+' 个链接暂不支持');addSongs(out)},'primary']]);
 }
 function listDlg(){
   modal('播放列表',b=>{
@@ -3339,9 +3352,9 @@ function listDlg(){
     draw();b.append(box);
   },[['导入更多',()=>{setTimeout(addDlg,0)}],['完成',null,'primary']]);
 }
-$('ltBg').onclick=()=>modal('一起听背景',b=>{
-  b.append(h('div','hint','选择一张图片作为一起听界面的背景。背景只保存在当前浏览器。'));
-},[['取消'],['恢复默认',()=>{G.listen.bg='';save();ltPaint();toast('已恢复默认背景')}],['选择图片',()=>pickFile(1800,.86,u=>{G.listen.bg=u;save();ltPaint();toast('背景已更换') }),'primary']]);
+$('ltBg').textContent='小窗背景';$('ltBg').onclick=()=>modal('一起听小弹窗背景',b=>{
+  b.append(h('div','hint','这里设置的是缩小后悬浮唱片小弹窗的背景，不会改变完整的一起听页面背景。'));
+},[['取消'],['恢复默认',()=>{G.listen.miniBg='';save();ltPaint();toast('小弹窗背景已恢复默认')}],['选择图片',()=>pickFile(1200,.82,u=>{G.listen.miniBg=u;save();ltPaint();toast('小弹窗背景已更换') }),'primary']]);
 function discDlg(){
   const dc=G.listen.disc||(G.listen.disc={hide:false,img:''});
   modal('唱片',b=>{
@@ -3557,6 +3570,11 @@ html,body,html body #app{background-color:#fff}
 html body #app .bar,html body #app #pp{background:#fff!important}
 html body #app .field{background:#f2f2f2!important}
 @media(prefers-color-scheme:dark){html,body,html body #app{background-color:var(--bg)}html body #app .bar,html body #app #pp{background:var(--bg)!important}html body #app .field{background:#1c1c1e!important}}
+</style>
+
+<style id="newsite-classic-no-timestamps">
+/* 经典气泡版不显示消息时间；日期分隔仍保留日期，不显示具体时刻 */
+#chat .gh .gt,#chat .r .ts,#chat .m .mt{display:none!important}
 </style>
 </body>
 </html>
