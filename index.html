@@ -2215,6 +2215,10 @@ setInterval(()=>{
 /* ========== 语音通话 ========== */
 const PH='<svg viewBox="0 0 24 24" width="30" height="30" fill="#fff"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.6 21 3 13.4 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>';
 let call=null,callTimers=[],callTick=null;
+const CALL_KEY='zk4_active_call_v1';
+function persistCall(){try{if(!call){localStorage.removeItem(CALL_KEY);return}localStorage.setItem(CALL_KEY,JSON.stringify({contactId:call.ct.id,dir:call.dir,state:call.state,t0:call.t0||0,msgs:call.msgs||[],savedAt:Date.now()}))}catch(e){}}
+function restoreCall(){try{const d=JSON.parse(localStorage.getItem(CALL_KEY)||'null');if(!d||!d.contactId)return;const ct=ctOf(d.contactId);if(!ct){localStorage.removeItem(CALL_KEY);return}call={ct,dir:d.dir==='in'?'in':'out',state:d.state==='connected'?'connected':'ringing',t0:Number(d.t0)||0,msgs:Array.isArray(d.msgs)?d.msgs:[],ringTimer:null};$('callMsgs').innerHTML='';showCall();(call.msgs||[]).slice(-5).forEach(m=>$('callMsgs').append(h('div','cmsg'+(m.type==='emoji'?' emo':''),m.text)));if(call.state==='connected'){clearInterval(callTick);callTick=setInterval(()=>{if(!call)return;const t=fmtDur(callSecs());$('pillTime').textContent=t;if(!$('call').hidden)$('callSt').textContent=t},1000)}else if(call.dir==='in')armIncomingRingTimeout(call);persistCall()}catch(e){try{localStorage.removeItem(CALL_KEY)}catch(_){}}}
+addEventListener('pagehide',persistCall);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')persistCall()});
 const fmtDur=n=>String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
 const callSecs=()=>call&&call.t0?Math.floor((Date.now()-call.t0)/1000):0;
 function paintCall(){
@@ -2247,7 +2251,7 @@ function callTyping(on){
   const t=h('div','cmsg ty');t.innerHTML='<i></i><i></i><i></i>';box.append(t);
 }
 function addCallMsg(m){
-  if(!call)return;call.msgs.push(m);
+  if(!call)return;call.msgs.push(m);persistCall();
   const box=$('callMsgs');box.querySelectorAll('.chint,.cmsg.ty').forEach(x=>x.remove());
   box.append(h('div','cmsg'+(m.type==='emoji'?' emo':''),m.text));
   while(box.children.length>5)box.firstChild.remove();
@@ -2286,28 +2290,43 @@ async function callReply(){
 function showCall(){paintCall();$('call').hidden=false;$('pill').hidden=true}
 function startCall(ct){
   if(call)return;
-  call={ct,dir:'out',state:'ringing',t0:0,msgs:[]};$('callMsgs').innerHTML='';showCall();
+  call={ct,dir:'out',state:'ringing',t0:0,msgs:[]};persistCall();$('callMsgs').innerHTML='';showCall();
   callTimers.push(setTimeout(()=>{
     if(!call||call.state!=='ringing')return;
     if(Math.random()*100<ct.cfg.callRejectProb)endCall('theyReject');else connect();
   },3000+Math.random()*5000));
 }
+function armIncomingRingTimeout(target=call){
+  if(!target||target.dir!=='in'||target.state!=='ringing'||document.visibilityState!=='visible')return;
+  clearTimeout(target.ringTimer);
+  target.ringTimer=setTimeout(()=>{
+    if(call!==target||target.state!=='ringing')return;
+    // 页面在后台时不判定为未接听；回到页面后重新给出完整接听时间。
+    if(document.visibilityState!=='visible')return;
+    endCall('missed');
+  },30000);
+}
 function incoming(ct){
   if(call)return;
-  call={ct,dir:'in',state:'ringing',t0:0,msgs:[]};$('callMsgs').innerHTML='';showCall();notify(ct.profile.name,'邀请你语音通话');
-  callTimers.push(setTimeout(()=>{if(call&&call.state==='ringing')endCall('missed')},30000));
+  call={ct,dir:'in',state:'ringing',t0:0,msgs:[],ringTimer:null};persistCall();$('callMsgs').innerHTML='';showCall();notify(ct.profile.name,'邀请你语音通话','incoming-call-'+ct.id,true);
+  armIncomingRingTimeout(call);
 }
+document.addEventListener('visibilitychange',()=>{
+  if(!call||call.dir!=='in'||call.state!=='ringing')return;
+  if(document.visibilityState==='hidden')clearTimeout(call.ringTimer);
+  else armIncomingRingTimeout(call);
+});
 function connect(){
   if(!call||call.state!=='ringing')return;
   callTimers.forEach(clearTimeout);callTimers=[];
-  call.state='connected';call.t0=Date.now();paintCall();
+  call.state='connected';call.t0=Date.now();persistCall();paintCall();
   clearInterval(callTick);
   callTick=setInterval(()=>{if(!call)return;const t=fmtDur(callSecs());$('pillTime').textContent=t;if(!$('call').hidden)$('callSt').textContent=t},1000);
 }
 function endCall(why){
   if(!call)return;
   callTimers.forEach(clearTimeout);callTimers=[];clearInterval(callTick);
-  const secs=callSecs(),was=call,ct=was.ct;call=null;
+  const secs=callSecs(),was=call,ct=was.ct;call=null;persistCall();
   $('call').hidden=true;$('pill').hidden=true;
   const text=was.state==='connected'?'通话时长 '+fmtDur(secs):({cancel:'已取消',theyReject:'对方已拒绝',reject:'已拒绝',missed:'未接听'}[why]||'通话结束');
   const cm={id:Date.now()+Math.random(),mine:false,type:'call',text,t:Date.now()};
@@ -2325,7 +2344,7 @@ $('callAv').onclick=()=>{const a=$('callAv');a.classList.remove('tap');void a.of
 $('callBgBtn').onclick=()=>{if(!call)return;const ct=call.ct;pickFile(1280,.82,u=>{ct.profile.callBg=u;save();if(call)paintCall()})};
 $('callBgRst').onclick=()=>{if(!call)return;call.ct.profile.callBg='';save();paintCall()};
 $('callMin').onclick=()=>{
-  $('call').hidden=true;const p=$('pill');p.hidden=false;
+  persistCall();$('call').hidden=true;const p=$('pill');p.hidden=false;
   if(!p.dataset.x){p.style.left=Math.max(8,innerWidth-p.offsetWidth-12)+'px';p.style.top='84px';p.dataset.x='1'}
 };
 (()=>{
@@ -3395,7 +3414,7 @@ $('ltT').onclick=()=>{const s=sg();if(!s)return;let a,b2;
   });
   G.cardSeq=Math.max(0,...G.cards.map(c=>Number(c.id)||0))+1;
   if(!G.contacts.length)newContact('对方','');
-  G.cur=G.contacts[0].id;booted=true;applySkin();flush();view='chat';openChat(G.cur);
+  G.cur=G.contacts[0].id;booted=true;applySkin();flush();view='chat';openChat(G.cur);restoreCall();
   G.contacts.forEach(ct=>ct.msgs.forEach(m=>{
     if(m.type==='poll'&&m.status==='pending')schedulePoll(m,ct);
   }));

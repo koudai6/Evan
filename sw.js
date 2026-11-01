@@ -46,7 +46,12 @@ self.addEventListener('notificationclick', event => {
   event.waitUntil((async () => {
     const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     for (const client of wins) {
-      if ('focus' in client) { await client.focus(); if ('navigate' in client) await client.navigate(target); return; }
+      if ('focus' in client) {
+        // 已有页面时只聚焦，不对同一页面执行 navigate；navigate 会刷新网页，
+        // 清掉内存中的来电状态，导致用户点通知回到网站后通话界面消失。
+        await client.focus();
+        return;
+      }
     }
     if (self.clients.openWindow) await self.clients.openWindow(target);
   })());
