@@ -1130,7 +1130,7 @@ header{padding-right:10px!important}
 .lt-row.on b{color:var(--ink)!important}
 
 /* 本轮调整：每段仅最后一条显示时间；消息字体恢复常规字重；字卡库纯黑白 */
-#chat .gh .gt{display:block!important;font-size:10px!important;line-height:1.2!important;font-weight:400!important;color:var(--mute)!important;opacity:.8!important;margin-top:2px!important;font-variant-numeric:tabular-nums!important;white-space:nowrap!important}
+#chat .gh .gt{display:none!important}
 #chat .r>.ts{flex:none;align-self:flex-end;font-size:10px;line-height:1;color:var(--mute);padding:0 2px 5px;white-space:nowrap;font-variant-numeric:tabular-nums;opacity:.8}
 html.cs-ref #chat .r.rf>.ts{font-size:10px!important;font-weight:400!important;color:#999!important}
 html.cs-ref #chat .r.rf>.m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots){font-weight:400!important}
@@ -1347,7 +1347,7 @@ const CK2='<svg viewBox="0 0 24 24"><path d="M2 12.5l4.5 4.5L15.5 7.5M10 15.5l1.
 function fmtDate(t){return new Date(t).toLocaleDateString('zh-CN',{year:'numeric',month:'numeric',day:'numeric'})}
 function dayLabel(t){const d=new Date(t),n=new Date();if(d.toDateString()===n.toDateString())return '今天';const y=new Date(n);y.setDate(n.getDate()-1);if(d.toDateString()===y.toDateString())return '昨天';return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日'}
 function qLine(m){const q=h('div','qline '+(m.mine?'mine':'theirs'));q.append(h('b','','@'+(m.reply.mine?(S.profile.myName||'我'):(S.profile.name||'对方'))),h('span','',m.reply.text));return q}
-function grpHead(mine,t){const g=h('div','gh '+(mine?'mine':'theirs')),i=h('div','gi');i.append(h('span','gn',mine?(S.profile.myName||'我'):(S.profile.name||'对方')),h('span','gt',hhmm(t)));g.append(mkAv(mine),i);return g}
+function grpHead(mine,t){const g=h('div','gh '+(mine?'mine':'theirs')),i=h('div','gi');i.append(h('span','gn',mine?(S.profile.myName||'我'):(S.profile.name||'对方')));g.append(mkAv(mine),i);return g}
 const metaEl=m=>{const s=h('span','mt');s.append(document.createTextNode(hhmm(m.t)));return s};
 function render(keep){
   const ct=cur();if(!ct)return;
@@ -2086,12 +2086,9 @@ function bgTab(body){
 }
 
 
-/* iOS 18 主屏幕模式：在可信的 touchstart/pointerdown 同步聚焦，不能等 touchend 后再补焦点 */
+/* iOS 18：只交给 Safari 原生点击流程聚焦，避免 touchstart/pointerdown 重复 focus 导致键盘闪跳 */
 (()=>{
  const input=document.getElementById('ta'); if(!input)return;
- const focusNow=()=>{ if(document.activeElement!==input){ try{input.focus({preventScroll:true});}catch(_){input.focus();} } };
- input.addEventListener('touchstart',focusNow,{capture:true,passive:true});
- input.addEventListener('pointerdown',focusNow,{capture:true,passive:true});
  input.addEventListener('focus',()=>{
    requestAnimationFrame(()=>{ if(window.relayout)window.relayout(); });
  });
@@ -3573,6 +3570,40 @@ html body #app .field{background:#f2f2f2!important}
 </style>
 
 <!-- 已恢复经典版气泡消息时间戳显示 -->
+
+<style id="ios-chat-keyboard-stable-v1">
+html,body{overscroll-behavior-y:none}
+#app{min-height:0;}
+#chat{overflow-anchor:auto;scroll-behavior:auto;overscroll-behavior:contain}
+#ta{scroll-margin-bottom:8px}
+</style>
+<script id="ios-chat-keyboard-stable-v1-script">
+(()=>{
+ const input=document.getElementById('ta'),chat=document.getElementById('chat');
+ if(!input||!chat)return;
+ const vv=window.visualViewport;
+ let raf=0,settleTimer=0,wasNearBottom=true;
+ const nearBottom=()=>chat.scrollHeight-chat.scrollTop-chat.clientHeight<140;
+ const toLatest=()=>{chat.scrollTop=chat.scrollHeight;};
+ const onFocus=()=>{wasNearBottom=true;requestAnimationFrame(()=>requestAnimationFrame(toLatest));};
+ const onViewport=()=>{
+   if(document.activeElement!==input)return;
+   if(raf)return;
+   raf=requestAnimationFrame(()=>{
+     raf=0;
+     if(wasNearBottom||nearBottom())toLatest();
+     clearTimeout(settleTimer);
+     settleTimer=setTimeout(()=>{if(document.activeElement===input)toLatest();},180);
+   });
+ };
+ input.addEventListener('focus',onFocus);
+ input.addEventListener('input',()=>{wasNearBottom=true;requestAnimationFrame(toLatest);});
+ if(vv){vv.addEventListener('resize',onViewport);vv.addEventListener('scroll',onViewport);}
+ window.addEventListener('resize',onViewport);
+ chat.addEventListener('scroll',()=>{wasNearBottom=nearBottom();},{passive:true});
+})();
+</script>
+
 </body>
 </html>
 
@@ -3910,7 +3941,7 @@ html.cs-ref #chat .r.rf.hasst{margin-top:36px!important}
 }
 
 /* 最终覆盖：每个连续消息段仅末条显示时间，消息文字使用常规字重，字卡库黑白 */
-#chat .gh .gt{display:block!important;font-size:10px!important;line-height:1.2!important;font-weight:400!important;color:var(--mute)!important;opacity:.8!important;margin-top:2px!important;font-variant-numeric:tabular-nums!important;white-space:nowrap!important}
+#chat .gh .gt{display:none!important}
 #chat .r>.ts{display:block!important;flex:none!important;align-self:flex-end!important;font-size:10px!important;line-height:1!important;font-weight:400!important;color:var(--mute)!important;padding:0 2px 5px!important;white-space:nowrap!important;font-variant-numeric:tabular-nums!important;opacity:.8!important}
 html.cs-ref #chat .r.rf>.ts{font-size:10px!important;font-weight:400!important;color:#999!important}
 #chat .m:not(.dots){font-weight:400!important}
