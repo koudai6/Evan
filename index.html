@@ -1960,7 +1960,14 @@ function stickerDlg(){
 }
 
 /* ========== 后台保活（静音音频 + 锁屏播放卡片）与消息弹窗 ========== */
-let keepAudio=null,avUrl='',avKey='',avType='image/png';
+let keepAudio=null,keepCtx=null,avUrl='',avKey='',avType='image/png';
+function liveStream(){
+  const AC=window.AudioContext||window.webkitAudioContext;
+  keepCtx=new AC();const dest=keepCtx.createMediaStreamDestination();
+  const o=keepCtx.createOscillator(),g=keepCtx.createGain();o.frequency.value=20;g.gain.value=0.0001;o.connect(g);g.connect(dest);o.start();
+  if(keepCtx.state==='suspended')keepCtx.resume().catch(()=>{});
+  return dest.stream;
+}
 function silentWav(){
   const sr=8000,n=sr*900,buf=new ArrayBuffer(44+n),v=new DataView(buf);
   const ws=(o,t)=>{for(let i=0;i<t.length;i++)v.setUint8(o+i,t.charCodeAt(i))};
@@ -1975,12 +1982,15 @@ function setMedia(){
   try{
     navigator.mediaSession.metadata=new MediaMetadata({title:mct.profile.uid||mct.profile.name,artist:'在线',album:'',artwork:G.sys.mediaArt?[{src:'icon-192.png',sizes:'192x192',type:'image/png'}]:[]});
     navigator.mediaSession.playbackState='playing';
+    try{navigator.mediaSession.setPositionState({duration:0,position:0,playbackRate:1})}catch(e){}
   }catch(e){}
 }
 async function startKeep(){
   if(keepAudio&&!keepAudio.paused){setMedia();return true}
   if(!keepAudio){
-    keepAudio=new Audio(silentWav());keepAudio.loop=true;keepAudio.volume=0.01;keepAudio.setAttribute('playsinline','true');
+    if(G.sys.keepLive&&(window.AudioContext||window.webkitAudioContext)){keepAudio=new Audio();keepAudio.srcObject=liveStream()}
+    else{keepAudio=new Audio(silentWav());keepAudio.loop=true}
+    keepAudio.volume=0.01;keepAudio.setAttribute('playsinline','true');
     if(!window.__keepWatch){window.__keepWatch=setInterval(()=>{if(G.sys.keepAlive&&keepAudio&&keepAudio.paused&&document.visibilityState==='visible')keepAudio.play().catch(()=>{})},5000)}
   }
   const pr=keepAudio.play();
@@ -1989,6 +1999,7 @@ async function startKeep(){
 }
 function stopKeep(){
   if(keepAudio)keepAudio.pause();
+  if(keepCtx){try{keepCtx.close()}catch(e){}keepCtx=null}
   if('mediaSession' in navigator){try{navigator.mediaSession.metadata=null;navigator.mediaSession.playbackState='none'}catch(e){}}
 }
 document.addEventListener('visibilitychange',()=>{if(G.sys.keepAlive&&keepAudio){if(keepAudio.paused)keepAudio.play().catch(()=>{})}});
@@ -2035,12 +2046,14 @@ function bgTab(body){
       if(c.checked){const ok=await onOn();if(!ok){c.checked=false;G.sys[key]=false;save();return}G.sys[key]=true}
       else{G.sys[key]=false;if(key==='keepAlive')stopKeep()}
       if(key==='mediaArt')setMedia();
+      if(key==='keepLive'&&G.sys.keepAlive){stopKeep();keepAudio=null;await startKeep()}
       save();refresh();
     };
     l.append(h('span','',label),c);w.append(l);
   };
   sw('后台保活（循环播放静音音频）','keepAlive',async()=>{G.sys.keepAlive=true;return await startKeep()});
   sw('新消息弹窗通知','notify',askNotify);
+  sw('实时流模式（实验）：让锁屏卡片像直播，不盖壁纸','keepLive',async()=>true);
   sw('锁屏播放卡片显示封面图（开启后 iOS 可能用封面盖住你的锁屏壁纸）','mediaArt',async()=>true);
   const st=h('div','bgst');w.append(st);
   let swState='检测中';
