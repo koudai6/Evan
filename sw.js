@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zk-chat-pwa-v16-art';
+const CACHE_NAME = 'zk-chat-pwa-v17-art';
 const APP_ICON = new URL('./icon-192.png?v=2', self.registration.scope).href;
 const APP_BADGE = new URL('./icon-192.png?v=2', self.registration.scope).href;
 self.addEventListener('install', event => {

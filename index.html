@@ -1962,47 +1962,33 @@ function stickerDlg(){
 /* ========== 后台保活（静音音频 + 锁屏播放卡片）与消息弹窗 ========== */
 let keepAudio=null,avUrl='',avKey='',avType='image/png';
 function silentWav(){
-  const sr=8000,n=sr*600,buf=new ArrayBuffer(44+n),v=new DataView(buf);
+  const sr=8000,n=sr*2,buf=new ArrayBuffer(44+n),v=new DataView(buf);
   const ws=(o,t)=>{for(let i=0;i<t.length;i++)v.setUint8(o+i,t.charCodeAt(i))};
-  ws(0,'RIFF');v.setUint32(4,36+n,true);ws(8,'WAVEfmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+  ws(0,'RIFF');v.setUint32(4,36+n,true);ws(8,'WAVE');ws(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
   v.setUint32(24,sr,true);v.setUint32(28,sr,true);v.setUint16(32,1,true);v.setUint16(34,8,true);ws(36,'data');v.setUint32(40,n,true);
-  const u=new Uint8Array(buf,44);u.fill(128);for(let i=0;i<n;i+=2)u[i]=129;
+  for(let i=0;i<n;i++)v.setUint8(44+i,128);
   return URL.createObjectURL(new Blob([buf],{type:'audio/wav'}));
 }
-let artUrl='',mediaKey='';
-async function loadArt(){
-  if(artUrl)return artUrl;
-  try{const r=await fetch(new URL('icon-512.png?v=2',location.href).href);const bl=await r.blob();artUrl=URL.createObjectURL(bl)}catch(e){}
-  return artUrl;
-}
-async function setMedia(force){
+function setMedia(){
   if(!('mediaSession' in navigator)||!keepAudio)return;
   const mct=cur()||G.contacts[0];if(!mct)return;
-  const key=mct.profile.name;
-  if(!force&&key===mediaKey)return;
-  mediaKey=key;
-  const art=await loadArt();
   try{
-    const md={title:key,artist:'在线'};
-    if(art)md.artwork=[{src:art,sizes:'512x512',type:'image/png'}];
-    navigator.mediaSession.metadata=new MediaMetadata(md);
+    navigator.mediaSession.metadata=new MediaMetadata({title:mct.profile.name,artist:'在线',album:'聊天保活',artwork:[{src:'icon-192.png',sizes:'192x192',type:'image/png'}]});
     navigator.mediaSession.playbackState='playing';
-    ['play','pause','seekbackward','seekforward'].forEach(a=>{try{navigator.mediaSession.setActionHandler(a,()=>{if(keepAudio)keepAudio.play().catch(()=>{})})}catch(e){}});
-    ['previoustrack','nexttrack','seekto'].forEach(a=>{try{navigator.mediaSession.setActionHandler(a,null)}catch(e){}});
   }catch(e){}
 }
 async function startKeep(){
   if(!keepAudio){
-    keepAudio=new Audio(silentWav());keepAudio.loop=true;keepAudio.setAttribute('playsinline','');
+    keepAudio=new Audio(silentWav());keepAudio.loop=true;keepAudio.volume=0.01;keepAudio.setAttribute('playsinline','true');
     keepAudio.addEventListener('pause',()=>{if(G.sys.keepAlive&&document.visibilityState==='hidden')setTimeout(()=>{keepAudio.play().catch(()=>{})},300)});
     ['ended','stalled','suspend','error'].forEach(ev=>keepAudio.addEventListener(ev,()=>{if(G.sys.keepAlive&&keepAudio.paused)setTimeout(()=>{keepAudio.play().catch(()=>{})},300)}));
     if(!window.__keepWatch){window.__keepWatch=setInterval(()=>{if(G.sys.keepAlive&&keepAudio&&keepAudio.paused)keepAudio.play().catch(()=>{})},5000)}
   }
-  try{await keepAudio.play();setMedia(true);return true}catch(e){toast('保活启动失败，请再点一次');return false}
+  try{await keepAudio.play();setMedia();setTimeout(setMedia,100);return true}catch(e){toast('保活启动失败，请再点一次');return false}
 }
 function stopKeep(){
   if(keepAudio)keepAudio.pause();
-  if('mediaSession' in navigator){try{navigator.mediaSession.metadata=null;navigator.mediaSession.playbackState='none';mediaKey=''}catch(e){}}
+  if('mediaSession' in navigator){try{navigator.mediaSession.metadata=null;navigator.mediaSession.playbackState='none'}catch(e){}}
 }
 document.addEventListener('visibilitychange',()=>{if(G.sys.keepAlive&&keepAudio){if(keepAudio.paused)keepAudio.play().catch(()=>{})}});
 async function askNotify(){
@@ -2077,7 +2063,7 @@ function bgTab(body){
   const btn=(t,fn)=>{const x=h('button','bgbtn',t);x.onclick=fn;w.append(x)};
   btn('测试后台保活：立即启动并刷新锁屏卡片',async()=>{
     const ok=await startKeep();
-    if(ok){await setMedia(true);toast('保活已启动：锁屏后应出现播放卡片，灵动岛也会显示音频');refresh()}
+    if(ok){setMedia();toast('保活已启动：锁屏后应出现播放卡片，灵动岛也会显示音频');refresh()}
   });
   btn('测试通知：立即弹一条',async()=>{
     if(!(await askNotify()))return;
