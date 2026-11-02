@@ -1973,7 +1973,7 @@ function setMedia(){
   if(!('mediaSession' in navigator)||!keepAudio)return;
   const mct=cur()||G.contacts[0];if(!mct)return;
   try{
-    navigator.mediaSession.metadata=new MediaMetadata({title:mct.profile.name,artist:'在线',album:'聊天保活',artwork:[{src:'icon-192.png',sizes:'192x192',type:'image/png'}]});
+    navigator.mediaSession.metadata=new MediaMetadata({title:mct.profile.uid||mct.profile.name,artist:'在线',album:'',artwork:[{src:'icon-192.png',sizes:'192x192',type:'image/png'}]});
     navigator.mediaSession.playbackState='playing';
   }catch(e){}
 }
@@ -2023,7 +2023,8 @@ async function notify(title,body,tag,force){
     if(reg&&reg.showNotification)await reg.showNotification(title,opt);else new Notification(title,opt);
   }catch(e){}
 }
-const notifyMsg=(m,ct)=>notify(ct.profile.name,String(prev(m)));
+const noticeBody=(ct,text)=>(ct&&ct.profile.uid?'from '+ct.profile.uid+'\n':'')+String(text);
+const notifyMsg=(m,ct)=>notify(ct.profile.name,noticeBody(ct,prev(m)));
 function bgTab(body){
   const w=h('div','bgwrap');
   const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
@@ -2068,13 +2069,13 @@ function bgTab(body){
   });
   btn('测试通知：立即弹一条',async()=>{
     if(!(await askNotify()))return;
-    await notify(cur()?cur().profile.name:'字卡聊天','这是一条测试通知','test',true);
+    await notify(cur()?cur().profile.name:'字卡聊天',noticeBody(cur(),'这是一条测试通知'),'test',true);
     toast('已发送；如果没看到，请切到后台或锁屏再试');
   });
   btn('测试通知：5 秒后弹出（请立刻锁屏）',async()=>{
     if(!(await askNotify()))return;
     toast('5 秒后弹出，请现在锁屏');
-    setTimeout(()=>notify(cur()?cur().profile.name:'字卡聊天','这是一条测试通知','test',true),5000);
+    setTimeout(()=>notify(cur()?cur().profile.name:'字卡聊天',noticeBody(cur(),'这是一条测试通知'),'test',true),5000);
   });
   btn('全链路测试：10 秒后对方发消息（请立刻锁屏）',async()=>{
     if(!G.sys.keepAlive){toast('先打开上面的「后台保活」开关');return}
@@ -2082,9 +2083,9 @@ function bgTab(body){
     if(!(await askNotify()))return;
     const ct=cur()||G.contacts[0];if(!ct){toast('没有联系人');return}
     toast('10 秒后对方会主动发一次，请现在锁屏');
-    setTimeout(()=>{if(!replyPool(ct).length)notify(ct.profile.name,'没有可用字卡，测试消息','test',true);else proactive(ct,true)},10000);
+    setTimeout(()=>{if(!replyPool(ct).length)notify(ct.profile.name,noticeBody(ct,'没有可用字卡，测试消息'),'test',true);else proactive(ct,true)},10000);
   });
-  w.append(h('div','hint','保活原理：循环播放一段听不见的静音音频，让系统把网页当成「正在播放音乐」。锁屏会出现播放卡片（对方头像和昵称），灵动岛也会显示音频，对方的延迟回复才能在后台照常触发。灵动岛的样式由系统决定，网页无法自定义；新消息通过通知横幅显示。iOS 随时可能回收，不能保证一直在线；开着会多耗一点电，不用时记得关闭。'));
+  w.append(h('div','hint','保活原理：循环播放一段听不见的静音音频，让系统把网页当成「正在播放音乐」。锁屏会出现播放卡片（标题是聊天ID，下面是「在线」），灵动岛也会显示音频，对方的延迟回复才能在后台照常触发。灵动岛的样式由系统决定，网页无法自定义；新消息通过通知横幅显示：标题是昵称，正文第一行「from 聊天ID」，第二行是消息内容（聊天ID在右上角菜单里设置）。iOS 随时可能回收，不能保证一直在线；开着会多耗一点电，不用时记得关闭。'));
   body.append(w);
 }
 
