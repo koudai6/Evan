@@ -1973,7 +1973,7 @@ function setMedia(){
   if(!('mediaSession' in navigator)||!keepAudio)return;
   const mct=cur()||G.contacts[0];if(!mct)return;
   try{
-    navigator.mediaSession.metadata=new MediaMetadata({title:mct.profile.uid||mct.profile.name,artist:'在线',album:'',artwork:G.sys.mediaArt?[{src:'icon-192.png',sizes:'192x192',type:'image/png'}]:[]});
+    navigator.mediaSession.metadata=new MediaMetadata({title:mct.profile.uid||mct.profile.name,artist:'在线',album:'',artwork:[]});
     navigator.mediaSession.playbackState='playing';
     try{navigator.mediaSession.setPositionState({duration:0,position:0,playbackRate:1})}catch(e){}
   }catch(e){}
@@ -2043,7 +2043,7 @@ function bgTab(body){
   };
   sw('后台保活（循环播放静音音频）','keepAlive',async()=>{G.sys.keepAlive=true;return await startKeep()});
   sw('新消息弹窗通知','notify',askNotify);
-  sw('锁屏播放卡片显示封面图（开启后 iOS 可能用封面盖住你的锁屏壁纸）','mediaArt',async()=>true);
+  sw('锁屏播放卡片显示封面图（关闭以保留手机原壁纸）','mediaArt',async()=>true);
   const st=h('div','bgst');w.append(st);
   let swState='检测中';
   const refresh=async()=>{
