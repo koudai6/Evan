@@ -1969,14 +1969,27 @@ function silentWav(){
   for(let i=0;i<n;i++)v.setInt16(44+i*2,i%2?1:-1,true);
   return URL.createObjectURL(new Blob([buf],{type:'audio/wav'}));
 }
+let artData='';
+function loadArt(){
+  if(artData)return Promise.resolve(artData);
+  return new Promise(res=>{
+    const im=new Image();
+    im.onload=()=>{try{const c=document.createElement('canvas');c.width=c.height=300;c.getContext('2d').drawImage(im,0,0,300,300);artData=c.toDataURL('image/jpeg',0.85)}catch(e){}res(artData)};
+    im.onerror=()=>res('');
+    im.src=new URL('icon-512.png?v=2',location.href).href;
+  });
+}
 async function setMedia(){
   if(!('mediaSession' in navigator)||!keepAudio)return;
   const mct=cur()||G.contacts[0];if(!mct)return;
-  const appArtwork=new URL('icon-512.png?v=2',location.href).href;
+  const art=await loadArt();
   try{
-    navigator.mediaSession.metadata=new MediaMetadata({title:mct.profile.name,artist:'在线',artwork:['96x96','192x192','384x384','512x512'].map(z=>({src:appArtwork,sizes:z,type:'image/png'}))});
+    const md={title:mct.profile.name,artist:'在线'};
+    if(art)md.artwork=[{src:art,sizes:'300x300',type:'image/jpeg'}];
+    navigator.mediaSession.metadata=new MediaMetadata(md);
     navigator.mediaSession.playbackState='playing';
-    ['play','pause'].forEach(a=>{try{navigator.mediaSession.setActionHandler(a,()=>{if(keepAudio)keepAudio.play().catch(()=>{})})}catch(e){}});
+    ['play','pause','seekbackward','seekforward'].forEach(a=>{try{navigator.mediaSession.setActionHandler(a,()=>{if(keepAudio)keepAudio.play().catch(()=>{})})}catch(e){}});
+    ['previoustrack','nexttrack','seekto'].forEach(a=>{try{navigator.mediaSession.setActionHandler(a,null)}catch(e){}});
   }catch(e){}
 }
 async function startKeep(){
@@ -1992,7 +2005,7 @@ function stopKeep(){
   if(keepAudio)keepAudio.pause();
   if('mediaSession' in navigator){try{navigator.mediaSession.metadata=null;navigator.mediaSession.playbackState='none'}catch(e){}}
 }
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&G.sys.keepAlive&&keepAudio&&keepAudio.paused)keepAudio.play().catch(()=>{})});
+document.addEventListener('visibilitychange',()=>{if(G.sys.keepAlive&&keepAudio){if(document.visibilityState==='hidden')setMedia();else if(keepAudio.paused)keepAudio.play().catch(()=>{})}});
 async function askNotify(){
   // WebToApp 原生桥接开关不等同于网页 Notification API 授权；分别检查，避免把两者混为一谈。
   const hasWebNotification=('Notification' in window)&&typeof Notification.permission==='string'&&typeof Notification.requestPermission==='function';
