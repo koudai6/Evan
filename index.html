@@ -1973,7 +1973,7 @@ function setMedia(){
   if(!('mediaSession' in navigator)||!keepAudio)return;
   const mct=cur()||G.contacts[0];if(!mct)return;
   try{
-    navigator.mediaSession.metadata=new MediaMetadata({title:mct.profile.uid||mct.profile.name,artist:'在线',album:'',artwork:[]});
+    navigator.mediaSession.metadata=new MediaMetadata({title:mct.profile.name||mct.profile.uid||'聊天',artist:'from ievan',album:'',artwork:[]});
     navigator.mediaSession.playbackState='playing';
     try{navigator.mediaSession.setPositionState({duration:0,position:0,playbackRate:1})}catch(e){}
   }catch(e){}
@@ -2025,8 +2025,8 @@ async function notify(title,body,tag,force){
     if(reg&&reg.showNotification)await reg.showNotification(title,opt);else new Notification(title,opt);
   }catch(e){}
 }
-const noticeBody=(ct,text)=>(ct&&ct.profile.uid?'from '+ct.profile.uid+'\n':'')+String(text);
-const notifyMsg=(m,ct)=>notify(ct.profile.name,noticeBody(ct,prev(m)));
+const noticeBody=(ct,text)=>'from '+String(ct&&ct.profile&&ct.profile.uid||'ievan')+'\n'+String(text||'你有一条新消息');
+const notifyMsg=(m,ct)=>notify(String(ct&&ct.profile&&ct.profile.name||'新消息'),noticeBody(ct,prev(m)));
 function bgTab(body){
   const w=h('div','bgwrap');
   const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;

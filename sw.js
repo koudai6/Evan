@@ -28,12 +28,18 @@ self.addEventListener('push', event => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; }
   catch (_) { data = { body: event.data ? event.data.text() : '你有一条新消息' }; }
-  const title = data.title || '字卡聊天';
+  // 精简锁屏推送：标题只显示昵称，正文为 from ID + 消息内容。
+  const title = data.nickname || data.name || data.title || '字卡聊天';
+  const info = data.info || data.message || data.body || '你有一条新消息';
+  const from = data.from || data.uid || 'ievan';
+  const body = String(info).startsWith('from ')
+    ? String(info)
+    : `from ${from}\n${String(info)}`;
   const options = {
-    body: data.body || data.message || '你有一条新消息',
+    body,
     icon: APP_ICON,
     badge: APP_BADGE,
-    image: new URL('./icon-512.png?v=2', self.registration.scope).href,
+    // 不设置 image，避免锁屏通知显示大图封面。
     tag: data.tag || 'zk-chat-message',
     renotify: !!data.renotify,
     data: { url: data.url || './' }
