@@ -1962,30 +1962,29 @@ function stickerDlg(){
 /* ========== 后台保活（静音音频 + 锁屏播放卡片）与消息弹窗 ========== */
 let keepAudio=null,avUrl='',avKey='',avType='image/png';
 function silentWav(){
-  const sr=8000,n=sr,buf=new ArrayBuffer(44+n*2),v=new DataView(buf);
+  const sr=8000,n=sr*600,buf=new ArrayBuffer(44+n),v=new DataView(buf);
   const ws=(o,t)=>{for(let i=0;i<t.length;i++)v.setUint8(o+i,t.charCodeAt(i))};
-  ws(0,'RIFF');v.setUint32(4,36+n*2,true);ws(8,'WAVEfmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
-  v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);ws(36,'data');v.setUint32(40,n*2,true);
-  for(let i=0;i<n;i++)v.setInt16(44+i*2,i%2?1:-1,true);
+  ws(0,'RIFF');v.setUint32(4,36+n,true);ws(8,'WAVEfmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+  v.setUint32(24,sr,true);v.setUint32(28,sr,true);v.setUint16(32,1,true);v.setUint16(34,8,true);ws(36,'data');v.setUint32(40,n,true);
+  const u=new Uint8Array(buf,44);u.fill(128);for(let i=0;i<n;i+=2)u[i]=129;
   return URL.createObjectURL(new Blob([buf],{type:'audio/wav'}));
 }
-let artData='';
-function loadArt(){
-  if(artData)return Promise.resolve(artData);
-  return new Promise(res=>{
-    const im=new Image();
-    im.onload=()=>{try{const c=document.createElement('canvas');c.width=c.height=300;c.getContext('2d').drawImage(im,0,0,300,300);artData=c.toDataURL('image/jpeg',0.85)}catch(e){}res(artData)};
-    im.onerror=()=>res('');
-    im.src=new URL('icon-512.png?v=2',location.href).href;
-  });
+let artUrl='',mediaKey='';
+async function loadArt(){
+  if(artUrl)return artUrl;
+  try{const r=await fetch(new URL('icon-512.png?v=2',location.href).href);const bl=await r.blob();artUrl=URL.createObjectURL(bl)}catch(e){}
+  return artUrl;
 }
-async function setMedia(){
+async function setMedia(force){
   if(!('mediaSession' in navigator)||!keepAudio)return;
   const mct=cur()||G.contacts[0];if(!mct)return;
+  const key=mct.profile.name;
+  if(!force&&key===mediaKey)return;
+  mediaKey=key;
   const art=await loadArt();
   try{
-    const md={title:mct.profile.name,artist:'在线'};
-    if(art)md.artwork=[{src:art,sizes:'300x300',type:'image/jpeg'}];
+    const md={title:key,artist:'在线'};
+    if(art)md.artwork=[{src:art,sizes:'512x512',type:'image/png'}];
     navigator.mediaSession.metadata=new MediaMetadata(md);
     navigator.mediaSession.playbackState='playing';
     ['play','pause','seekbackward','seekforward'].forEach(a=>{try{navigator.mediaSession.setActionHandler(a,()=>{if(keepAudio)keepAudio.play().catch(()=>{})})}catch(e){}});
@@ -1997,15 +1996,15 @@ async function startKeep(){
     keepAudio=new Audio(silentWav());keepAudio.loop=true;keepAudio.setAttribute('playsinline','');
     keepAudio.addEventListener('pause',()=>{if(G.sys.keepAlive&&document.visibilityState==='hidden')setTimeout(()=>{keepAudio.play().catch(()=>{})},300)});
     ['ended','stalled','suspend','error'].forEach(ev=>keepAudio.addEventListener(ev,()=>{if(G.sys.keepAlive&&keepAudio.paused)setTimeout(()=>{keepAudio.play().catch(()=>{})},300)}));
-    if(!window.__keepWatch){window.__keepWatch=setInterval(()=>{if(G.sys.keepAlive&&keepAudio&&keepAudio.paused)keepAudio.play().then(()=>setMedia()).catch(()=>{})},5000)}
+    if(!window.__keepWatch){window.__keepWatch=setInterval(()=>{if(G.sys.keepAlive&&keepAudio&&keepAudio.paused)keepAudio.play().catch(()=>{})},5000)}
   }
-  try{await keepAudio.play();setMedia();return true}catch(e){toast('保活启动失败，请再点一次');return false}
+  try{await keepAudio.play();setMedia(true);return true}catch(e){toast('保活启动失败，请再点一次');return false}
 }
 function stopKeep(){
   if(keepAudio)keepAudio.pause();
-  if('mediaSession' in navigator){try{navigator.mediaSession.metadata=null;navigator.mediaSession.playbackState='none'}catch(e){}}
+  if('mediaSession' in navigator){try{navigator.mediaSession.metadata=null;navigator.mediaSession.playbackState='none';mediaKey=''}catch(e){}}
 }
-document.addEventListener('visibilitychange',()=>{if(G.sys.keepAlive&&keepAudio){if(document.visibilityState==='hidden')setMedia();else if(keepAudio.paused)keepAudio.play().catch(()=>{})}});
+document.addEventListener('visibilitychange',()=>{if(G.sys.keepAlive&&keepAudio){if(keepAudio.paused)keepAudio.play().catch(()=>{})}});
 async function askNotify(){
   // WebToApp 原生桥接开关不等同于网页 Notification API 授权；分别检查，避免把两者混为一谈。
   const hasWebNotification=('Notification' in window)&&typeof Notification.permission==='string'&&typeof Notification.requestPermission==='function';
@@ -2078,7 +2077,7 @@ function bgTab(body){
   const btn=(t,fn)=>{const x=h('button','bgbtn',t);x.onclick=fn;w.append(x)};
   btn('测试后台保活：立即启动并刷新锁屏卡片',async()=>{
     const ok=await startKeep();
-    if(ok){await setMedia();toast('保活已启动：锁屏后应出现播放卡片，灵动岛也会显示音频');refresh()}
+    if(ok){await setMedia(true);toast('保活已启动：锁屏后应出现播放卡片，灵动岛也会显示音频');refresh()}
   });
   btn('测试通知：立即弹一条',async()=>{
     if(!(await askNotify()))return;
