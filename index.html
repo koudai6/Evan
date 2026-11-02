@@ -1962,7 +1962,7 @@ function stickerDlg(){
 /* ========== 后台保活（静音音频 + 锁屏播放卡片）与消息弹窗 ========== */
 let keepAudio=null,avUrl='',avKey='',avType='image/png';
 function silentWav(){
-  const sr=8000,n=sr*2,buf=new ArrayBuffer(44+n),v=new DataView(buf);
+  const sr=8000,n=sr*900,buf=new ArrayBuffer(44+n),v=new DataView(buf);
   const ws=(o,t)=>{for(let i=0;i<t.length;i++)v.setUint8(o+i,t.charCodeAt(i))};
   ws(0,'RIFF');v.setUint32(4,36+n,true);ws(8,'WAVE');ws(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
   v.setUint32(24,sr,true);v.setUint32(28,sr,true);v.setUint16(32,1,true);v.setUint16(34,8,true);ws(36,'data');v.setUint32(40,n,true);
@@ -1978,13 +1978,14 @@ function setMedia(){
   }catch(e){}
 }
 async function startKeep(){
+  if(keepAudio&&!keepAudio.paused){setMedia();return true}
   if(!keepAudio){
     keepAudio=new Audio(silentWav());keepAudio.loop=true;keepAudio.volume=0.01;keepAudio.setAttribute('playsinline','true');
-    keepAudio.addEventListener('pause',()=>{if(G.sys.keepAlive&&document.visibilityState==='hidden')setTimeout(()=>{keepAudio.play().catch(()=>{})},300)});
-    ['ended','stalled','suspend','error'].forEach(ev=>keepAudio.addEventListener(ev,()=>{if(G.sys.keepAlive&&keepAudio.paused)setTimeout(()=>{keepAudio.play().catch(()=>{})},300)}));
-    if(!window.__keepWatch){window.__keepWatch=setInterval(()=>{if(G.sys.keepAlive&&keepAudio&&keepAudio.paused)keepAudio.play().catch(()=>{})},5000)}
+    if(!window.__keepWatch){window.__keepWatch=setInterval(()=>{if(G.sys.keepAlive&&keepAudio&&keepAudio.paused&&document.visibilityState==='visible')keepAudio.play().catch(()=>{})},5000)}
   }
-  try{await keepAudio.play();setMedia();setTimeout(setMedia,100);return true}catch(e){toast('保活启动失败，请再点一次');return false}
+  const pr=keepAudio.play();
+  setMedia();setTimeout(setMedia,100);
+  try{await pr;return true}catch(e){toast('保活启动失败，请再点一次');return false}
 }
 function stopKeep(){
   if(keepAudio)keepAudio.pause();
