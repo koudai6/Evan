@@ -1973,7 +1973,14 @@ function setMedia(){
   if(!('mediaSession' in navigator)||!keepAudio)return;
   const mct=cur()||G.contacts[0];if(!mct)return;
   try{
-    navigator.mediaSession.metadata=new MediaMetadata({title:mct.profile.name||mct.profile.uid||'聊天',artist:'在线',album:'聊天保活',artwork:[]});
+    // 先清掉旧的 Now Playing 元数据，避免 iOS 沿用上一次会话的封面图。
+    navigator.mediaSession.metadata=null;
+    const meta={title:mct.profile.name||mct.profile.uid||'聊天',artist:'在线',album:'聊天保活'};
+    // 默认不提供 artwork：让锁屏继续显示用户自己的壁纸（P3 样式）。
+    // 用户主动打开「锁屏播放卡片显示封面图」后，才把联系人头像作为封面。
+    const cover=G.sys&&G.sys.mediaArt&&mct.profile&&mct.profile.avatar;
+    if(cover)meta.artwork=[{src:cover,sizes:'512x512',type:(String(cover).match(/^data:(image\/[a-zA-Z0-9.+-]+)/)||[])[1]||'image/png'}];
+    navigator.mediaSession.metadata=new MediaMetadata(meta);
     navigator.mediaSession.playbackState='playing';
     try{navigator.mediaSession.setPositionState({duration:0,position:0,playbackRate:1})}catch(e){}
   }catch(e){}
@@ -3412,6 +3419,8 @@ $('ltT').onclick=()=>{const s=sg();if(!s)return;let a,b2;
     if(d.sys)G.sys={...G.sys,...d.sys};
     if(d.listen&&Array.isArray(d.listen.songs))G.listen=d.listen;
   }
+  // 升级后只重置一次封面开关，恢复无封面的大壁纸锁屏样式；之后仍允许用户自行开启。
+  if(!G.sys.mediaArtP3Reset){G.sys.mediaArt=false;G.sys.mediaArtP3Reset=true;save()}
   if(lite&&Array.isArray(lite.contacts))lite.contacts.forEach(lc=>{const ct=ctOf(lc.id);if(ct){{const {avatar,myAvatar,bg,callBg,momCover,...lp}=lc.profile||{};ct.profile={...ct.profile,...lp}}ct.cfg={...ct.cfg,...lc.cfg};if(lc.sel)ct.sel=lc.sel}});
   G.cards=(G.cards||[]).filter(Boolean);
   G.contacts.forEach(ct=>{
