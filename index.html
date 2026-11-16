@@ -1990,7 +1990,7 @@ function setMedia(){
       artist:'在线',
       album:'',
       // 只给一张小图：给 512 大图时 iOS 可能把封面放大铺满整个锁屏
-      artwork:[{src:absUrl('icon-192.png?v=2'),sizes:'192x192',type:'image/png'}]
+      artwork:G.sys.cover===false?[]:[{src:absUrl('icon-192.png?v=2'),sizes:'192x192',type:'image/png'}]
     });
     ms.playbackState=keepAudio.paused?'paused':'playing';
     try{ms.setPositionState({duration:0,position:0,playbackRate:1})}catch(e){}
@@ -2061,6 +2061,11 @@ function bgTab(body){
   };
   sw('后台保活（循环播放静音音频）','keepAlive',async()=>{G.sys.keepAlive=true;return await startKeep()});
   sw('新消息弹窗通知','notify',askNotify);
+  {
+    const l=h('label','sw'),c=h('input');c.type='checkbox';c.checked=G.sys.cover!==false;
+    c.onchange=()=>{G.sys.cover=c.checked;save();if(keepAudio){setMedia();setTimeout(setMedia,150)}toast(c.checked?'锁屏卡片显示封面图':'锁屏卡片不再带封面图')};
+    l.append(h('span','','锁屏卡片带封面图（封面变全屏就关掉）'),c);w.append(l);
+  }
   const st=h('div','bgst');w.append(st);
   let swState='检测中';
   const refresh=async()=>{
