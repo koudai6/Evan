@@ -2824,7 +2824,8 @@ function importFullBackup(){
           candidate.cardSeq=candidate.cardSeq||1;
           candidate.skin={...SKIN_DEF,...(candidate.skin||{})};
           candidate.skins=Array.isArray(candidate.skins)?candidate.skins:[];
-          candidate.sys=candidate.sys||{keepAlive:false,notify:false};
+          // 保活/通知/底栏留白是这台设备的设置，导入备份时保留当前的，不被备份里的旧值覆盖
+          candidate.sys={keepAlive:false,notify:false,...(candidate.sys||{}),...G.sys};
           candidate.contacts.forEach((ct,i)=>{
             ct.cfg={...DEF_CFG,...(ct.cfg||{})};ct.msgs=Array.isArray(ct.msgs)?ct.msgs:[];ct.letters=Array.isArray(ct.letters)?ct.letters:[];ct.moments=Array.isArray(ct.moments)?ct.moments:[];ct.momPending=Array.isArray(ct.momPending)?ct.momPending:[];ct.momUnread=ct.momUnread||0;ct.momPlan=ct.momPlan||null;ct.momDay=ct.momDay||{day:'',count:0};ct.profile={name:'联系人',avatar:'',myAvatar:'',bg:'',myName:'我',...(ct.profile||{})};delete ct.status;ct.sel=Array.isArray(ct.sel)?ct.sel:candidate.groups.map(g=>g.id);
           });
@@ -2836,7 +2837,7 @@ function importFullBackup(){
           Object.keys(G).forEach(k=>delete G[k]);Object.assign(G,candidate);
           G.cur=null;V.q='';V.type='all';V.group='all';V.multi=false;V.sel.clear();applySkin();view='list';closePop();closePP();$('list').hidden=false;['cardsPage','cfgPage'].forEach(i=>{const e=$(i);if(e)e.hidden=true});
           booted=true;try{localStorage.setItem('zk4_lite',JSON.stringify({contacts:G.contacts.map(c=>({id:c.id,profile:{...c.profile,avatar:'',myAvatar:'',bg:'',callBg:'',momCover:''},cfg:c.cfg,sel:c.sel}))}))}catch(e){}
-          await new Promise(r=>setTimeout(r,0));renderList();toast('完整备份导入成功');
+          await new Promise(r=>setTimeout(r,0));renderList();if(keepAudio)setMedia();toast('完整备份导入成功');
         }catch(e){console.error(e);toast('导入失败，当前页面数据未替换：'+(e.message||'未知错误'))}
       },'确认导入');
     }).catch(e=>{console.error(e);toast('备份读取失败，未更改现有数据：'+(e.message||'文件无效'))});
