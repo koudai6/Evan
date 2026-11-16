@@ -1970,6 +1970,7 @@ function stickerDlg(){
 
 /* ========== 后台保活（静音音频 + 锁屏播放卡片 + 灵动岛图标）与消息弹窗 ========== */
 let keepAudio=null,keepPaused=false,mediaInit=false;
+const siteName=()=>String(G.sys.siteName||'').trim()||'字卡聊天';
 const absUrl=p=>new URL(p,location.href).href;
 function silentWav(){
   const sr=8000,n=sr*2,buf=new ArrayBuffer(44+n),v=new DataView(buf);
@@ -1984,9 +1985,9 @@ function setMedia(){
   const ct=cur()||G.contacts[0];if(!ct)return;
   const ms=navigator.mediaSession;
   try{
-    // 标题 = 聊天ID（没填则用昵称），副标题「在线」；封面 = 网站图标，灵动岛左侧也显示这张图
+    // 标题 = 网站名，副标题「在线」；封面 = 网站图标，灵动岛左侧也显示这张图
     ms.metadata=new MediaMetadata({
-      title:ct.profile.uid||ct.profile.name||'聊天',
+      title:siteName(),
       artist:'在线',
       album:'',
       // 只给一张小图：给 512 大图时 iOS 可能把封面放大铺满整个锁屏
@@ -2062,6 +2063,12 @@ function bgTab(body){
   sw('后台保活（循环播放静音音频）','keepAlive',async()=>{G.sys.keepAlive=true;return await startKeep()});
   sw('新消息弹窗通知','notify',askNotify);
   {
+    const l=h('label','sw'),ni=document.createElement('input');ni.type='text';ni.maxLength=20;ni.placeholder='字卡聊天';ni.value=G.sys.siteName||'';
+    ni.style.cssText='width:130px;text-align:right;border:0;background:transparent;font:inherit;color:var(--blue)';
+    ni.onchange=()=>{G.sys.siteName=ni.value.trim();save();if(keepAudio){setMedia();setTimeout(setMedia,150)}toast('锁屏卡片名称：'+siteName())};
+    l.append(h('span','','锁屏卡片名称（填你添加到主屏幕时改的名字）'),ni);w.append(l);
+  }
+  {
     const l=h('label','sw'),c=h('input');c.type='checkbox';c.checked=G.sys.cover!==false;
     c.onchange=()=>{G.sys.cover=c.checked;save();if(keepAudio){setMedia();setTimeout(setMedia,150)}toast(c.checked?'锁屏卡片显示封面图':'锁屏卡片不再带封面图')};
     l.append(h('span','','锁屏卡片带封面图（封面变全屏就关掉）'),c);w.append(l);
@@ -2105,7 +2112,7 @@ function bgTab(body){
     toast('10 秒后对方会主动发一次，请现在锁屏');
     setTimeout(()=>{if(!replyPool(ct).length)notify(ct,'没有可用字卡，测试消息','test',true);else proactive(ct,true)},10000);
   });
-  w.append(h('div','hint','保活原理：循环播放一段 2 秒、听不见的静音音频，让系统把网页当成「正在播放音乐」。锁屏会出现播放卡片（封面是网站图标，标题是聊天ID，副标题「在线」），灵动岛左侧显示同一张图标；不会改动你的锁屏壁纸。新消息通过通知弹出：标题是对方昵称，第一行「from 聊天ID」，第二行是消息内容（聊天ID在右上角菜单里设置）。iOS 随时可能回收，不能保证一直在线；开着会多耗一点电，不用时记得关闭。'));
+  w.append(h('div','hint','保活原理：循环播放一段 2 秒、听不见的静音音频，让系统把网页当成「正在播放音乐」。锁屏会出现播放卡片（封面是网站图标，标题是你在上面填的名称（默认「字卡聊天」），副标题「在线」），灵动岛左侧显示同一张图标；不会改动你的锁屏壁纸。新消息通过通知弹出：标题是对方昵称，第一行「from 聊天ID」，第二行是消息内容（聊天ID在右上角菜单里设置）。iOS 随时可能回收，不能保证一直在线；开着会多耗一点电，不用时记得关闭。'));
   body.append(w);
 }
 
