@@ -1989,10 +1989,8 @@ function setMedia(){
       title:ct.profile.uid||ct.profile.name||'聊天',
       artist:'在线',
       album:'',
-      artwork:[
-        {src:absUrl('icon-192.png?v=2'),sizes:'192x192',type:'image/png'},
-        {src:absUrl('icon-512.png?v=2'),sizes:'512x512',type:'image/png'}
-      ]
+      // 只给一张小图：给 512 大图时 iOS 可能把封面放大铺满整个锁屏
+      artwork:[{src:absUrl('icon-192.png?v=2'),sizes:'192x192',type:'image/png'}]
     });
     ms.playbackState=keepAudio.paused?'paused':'playing';
     try{ms.setPositionState({duration:0,position:0,playbackRate:1})}catch(e){}
