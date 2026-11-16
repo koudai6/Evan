@@ -2928,6 +2928,7 @@ $('more').onclick=()=>menuCard(S.profile.name,[
   [ICO.restore,'恢复默认背景','回到纯色背景',()=>$('rstBg').onclick()],
   [ICO.restore,'导出完整备份','保存全部用户数据、聊天记录、图片、音乐及字体（不含网站源码）',()=>exportFullBackup()],
   [ICO.restore,'导入完整备份','从完整备份恢复用户数据与本地资源（兼容旧版）',()=>importFullBackup()],
+  [ICO.restore,'后台保活与通知','锁屏播放卡片、消息弹窗',()=>modal('后台保活与通知',b=>bgTab(b),[['完成',null,'primary']])],
   [ICO.trash,'清空聊天记录','只删除当前消息',()=>$('clr').onclick(),true]
 ]);
 $('lAdd').onclick=contactDlg;
