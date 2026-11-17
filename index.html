@@ -1333,6 +1333,7 @@ const kv={db:null,
 };
 function flush(){clearTimeout(timer);if(!booted)return;try{localStorage.setItem('zk4_lite',JSON.stringify({contacts:G.contacts.map(c=>({id:c.id,profile:{...c.profile,avatar:'',myAvatar:'',bg:'',callBg:'',momCover:''},cfg:c.cfg,sel:c.sel}))}))}catch(e){}kv.set('state',G)}
 function save(){clearTimeout(timer);timer=setTimeout(flush,250)}
+window.TarotStore={list(){return Array.isArray(G.tarot)?G.tarot:(G.tarot=[])},save(){save()}};
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flush()});
 addEventListener('pagehide',flush);
 
@@ -1559,7 +1560,8 @@ PPI.moments='<svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="eveno
 PPI.listen='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 0 0-9 9v6a3 3 0 0 0 3 3h1a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1H5v-1a7 7 0 0 1 14 0v1h-2a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h1a3 3 0 0 0 3-3v-6a9 9 0 0 0-9-9z"/></svg>';
 PPI.calllog='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.6 21 3 13.4 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>';
 PPI.mystat='<svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M5 3h14a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-6l-4.5 4v-4H5a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3zm3.6 4.6a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm6.8 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zM8.4 11.6h7.2a3.6 3.6 0 0 1-7.2 0z"/></svg>';
-const PP_ITEMS=[['cards','字卡库'],['transfer','转账'],['poll','抉择'],['moments','朋友圈'],['cfg','设置'],['pat','拍一拍'],['skin','装扮'],['listen','一起听'],['calllog','通话记录'],['mystat','我的状态']];
+PPI.tarot='<svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM12.0 7.2 L13.12 10.06 L16.18 10.24 L13.81 12.19 L14.59 15.16 L12.0 13.5 L9.41 15.16 L10.19 12.19 L7.82 10.24 L10.88 10.06Z"/></svg>';
+const PP_ITEMS=[['cards','字卡库'],['transfer','转账'],['poll','抉择'],['moments','朋友圈'],['cfg','设置'],['pat','拍一拍'],['skin','装扮'],['listen','一起听'],['calllog','通话记录'],['mystat','我的状态'],['tarot','占卜']];
 function plusAction(a){
   if(a==='image')pickFiles(1280,.82,()=>{});
   else if(a==='cfg')openCfg();
@@ -1573,6 +1575,7 @@ function plusAction(a){
   else if(a==='listen')openLT();
   else if(a==='calllog')openCallLogs();
   else if(a==='mystat')myStatDlg();
+  else if(a==='tarot')openTarot();
   else toast('这个功能下一步接入');
 }
 function buildPP(){
@@ -3435,6 +3438,7 @@ $('ltT').onclick=()=>{const s=sg();if(!s)return;let a,b2;
     if(Array.isArray(d.polls))G.polls=d.polls;
     if(d.sys)G.sys={...G.sys,...d.sys};
     if(d.listen&&Array.isArray(d.listen.songs))G.listen=d.listen;
+    if(Array.isArray(d.tarot))G.tarot=d.tarot;
   }
   if(lite&&Array.isArray(lite.contacts))lite.contacts.forEach(lc=>{const ct=ctOf(lc.id);if(ct){{const {avatar,myAvatar,bg,callBg,momCover,...lp}=lc.profile||{};ct.profile={...ct.profile,...lp}}ct.cfg={...ct.cfg,...lc.cfg};if(lc.sel)ct.sel=lc.sel}});
   G.cards=(G.cards||[]).filter(Boolean);
@@ -3652,6 +3656,460 @@ html,body{overscroll-behavior-y:none}
  if(vv){vv.addEventListener('resize',onViewport);vv.addEventListener('scroll',onViewport);}
  window.addEventListener('resize',onViewport);
  chat.addEventListener('scroll',()=>{wasNearBottom=nearBottom();},{passive:true});
+})();
+</script>
+
+<style id="tarot-css">
+#tarotPage{position:fixed;inset:0;z-index:35;height:var(--H,100%);background:var(--bg);color:var(--ink);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top);-webkit-user-select:none;user-select:none}
+#tarotPage [hidden],#tarotPage[hidden]{display:none!important}
+#tarotPage .tr-top{flex:none;display:flex;align-items:center;gap:4px;padding:8px 12px 6px 4px}
+#tarotPage .tr-top #trBack{border:0;background:none;font-size:32px;line-height:1;padding:0 8px 4px;color:var(--ink)}
+#tarotPage .tr-top b{flex:1;font-size:17px;font-weight:600;letter-spacing:.06em}
+#tarotPage .tr-top .tr-hb{border:1px solid var(--line);background:none;color:var(--ink);border-radius:999px;padding:5px 13px;font:inherit;font-size:12px;letter-spacing:.14em}
+#tarotPage .tr-ask,#tarotPage .tr-hist{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;width:100%;max-width:520px;margin:0 auto;animation:trIn .4s ease both}
+#tarotPage .tr-ask{padding:26px 24px calc(28px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:26px}
+#tarotPage .tr-h{font-size:11px;letter-spacing:.26em;color:var(--mute);margin:0 0 10px}
+#tarotPage .tr-q{display:block;width:100%;min-height:112px;resize:none;border:1px solid var(--line);border-radius:16px;background:transparent;color:var(--ink);font:inherit;font-size:16px;line-height:1.55;padding:14px 16px;outline:none;-webkit-appearance:none;appearance:none;-webkit-user-select:text;user-select:text;transition:border-color .2s}
+#tarotPage .tr-q:focus{border-color:var(--ink)}
+#tarotPage .tr-q::placeholder{color:var(--mute)}
+#tarotPage .tr-sp{display:flex;gap:10px}
+#tarotPage .tr-sp button{flex:1;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:16px;padding:15px 8px 13px;font:inherit;font-size:15px;line-height:1.3;transition:background .2s,color .2s,border-color .2s}
+#tarotPage .tr-sp button small{display:block;margin-top:4px;font-size:9px;letter-spacing:.06em;white-space:nowrap;color:var(--mute);transition:color .2s}
+#tarotPage .tr-sp button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+#tarotPage .tr-sp button.on small{color:var(--bg);opacity:.62}
+#tarotPage .tr-go{border:1px solid var(--ink);background:var(--ink);color:var(--bg);border-radius:999px;padding:15px;font:inherit;font-size:15px;letter-spacing:.3em;margin-top:2px}
+#tarotPage .tr-go:active{opacity:.82}
+#tarotPage .tr-hist{padding:6px 20px calc(24px + env(safe-area-inset-bottom))}
+#tarotPage .tr-hi{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);padding:16px 4px;font:inherit}
+#tarotPage .tr-hi .tr-hd{font-size:11px;letter-spacing:.16em;color:var(--mute)}
+#tarotPage .tr-hi .tr-hq{margin-top:6px;font-size:16px;line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-all}
+#tarotPage .tr-hi .tr-hq.e{color:var(--mute)}
+#tarotPage .tr-hi .tr-hc{margin-top:8px;font-size:13px;line-height:1.55;color:var(--mute)}
+#tarotPage .tr-empty{text-align:center;color:var(--mute);font-size:12px;letter-spacing:.3em;padding:90px 0}
+#tarotPage .tr-play{flex:1;min-height:0;display:flex;flex-direction:column;animation:trIn .4s ease both}
+#tarotPage .tr-qline{flex:none;text-align:center;font-size:13px;line-height:20px;color:var(--mute);padding:6px 32px 0;min-height:26px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tarotPage .tr-stage{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none}
+#tarotPage .tr-row{display:flex;justify-content:center;align-items:flex-start;gap:var(--gap,12px)}
+#tarotPage .tr-slot{width:var(--cw);display:flex;flex-direction:column;align-items:center}
+#tarotPage .tr-pos{height:16px;margin-bottom:12px;font-size:10px;line-height:16px;letter-spacing:.24em;color:var(--mute);white-space:nowrap;opacity:0}
+#tarotPage .tr-card{width:var(--cw);height:calc(var(--cw)*5/3);perspective:1000px;-webkit-perspective:1000px;opacity:0}
+#tarotPage .tr-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;will-change:transform}
+#tarotPage .tr-back,#tarotPage .tr-face{position:absolute;inset:0;border-radius:calc(var(--cw)*.085);backface-visibility:hidden;-webkit-backface-visibility:hidden;background-size:100% 100%;background-repeat:no-repeat}
+#tarotPage .tr-face{transform:rotateY(180deg) translateZ(0);overflow:hidden}
+#tarotPage .tr-art{display:block;width:100%;height:100%;object-fit:cover}
+#tarotPage .tr-art.rev{transform:rotate(180deg)}
+#tarotPage .tr-nm{margin-top:16px;min-height:78px;text-align:center;opacity:0}
+#tarotPage .tr-nm b{display:block;font-size:16px;font-weight:600;letter-spacing:.04em;white-space:nowrap}
+#tarotPage .tr-nm i{display:block;margin-top:3px;font-style:normal;font-size:11px;letter-spacing:.12em;color:var(--mute);white-space:nowrap}
+#tarotPage .tr-nm em{display:inline-block;white-space:nowrap;margin-top:10px;padding:2px 10px;border:1px solid var(--ink);border-radius:999px;font-style:normal;font-size:10.5px;letter-spacing:.06em}
+#tarotPage .tr-deck{position:absolute;left:0;top:0;width:0;height:0}
+#tarotPage .tr-c{position:absolute;left:0;top:0;width:var(--dcw);height:calc(var(--dcw)*5/3);margin-left:calc(var(--dcw)/-2);margin-top:calc(var(--dcw)*-5/6);border-radius:calc(var(--dcw)*.085);background-size:100% 100%;background-repeat:no-repeat;will-change:transform,opacity;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+#tarotPage .tr-note{position:absolute;left:0;right:0;bottom:14px;text-align:center;font-size:11px;letter-spacing:.3em;color:var(--mute);opacity:0;pointer-events:none}
+#tarotPage .tr-bar{flex:none;display:grid;padding:6px 24px calc(18px + env(safe-area-inset-bottom))}
+#tarotPage .tr-g{grid-area:1/1;display:flex;gap:10px;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+#tarotPage .tr-g.on{opacity:1;pointer-events:auto}
+#tarotPage .tr-g button{flex:1;max-width:190px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:12px 8px;font:inherit;font-size:14px;letter-spacing:.06em;white-space:nowrap}
+#tarotPage .tr-g button.p{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+#tarotPage .tr-g button:disabled{opacity:.4}
+#tarotPage .tr-reading{flex:none}
+@keyframes trIn{from{opacity:0}to{opacity:1}}
+</style>
+<section id="tarotPage" hidden>
+  <div class="tr-top"><button id="trBack" aria-label="返回">‹</button><b id="trTitle">占卜</b><button class="tr-hb" id="trHb">记录</button></div>
+  <div class="tr-ask" id="trAsk">
+    <div><div class="tr-h">问题 · QUESTION</div><textarea class="tr-q" id="trQ" maxlength="200" placeholder="写下想问的事，也可以留空"></textarea></div>
+    <div><div class="tr-h">牌阵 · SPREAD</div><div class="tr-sp" id="trSp"></div></div>
+    <button class="tr-go" id="trGo">洗牌 · SHUFFLE</button>
+  </div>
+  <div class="tr-hist" id="trHist" hidden></div>
+  <div class="tr-play" id="trPlay" hidden>
+    <div class="tr-qline" id="trQL"></div>
+    <div class="tr-stage" id="trStage">
+      <div class="tr-row" id="trRow"></div>
+      <div class="tr-deck" id="trDeck"></div>
+      <div class="tr-note" id="trNote"></div>
+    </div>
+    <!-- 解读预留位置：之后把解读内容放进 #trReading 并取消 hidden -->
+    <div class="tr-reading" id="trReading" hidden></div>
+    <div class="tr-bar">
+      <div class="tr-g" id="trGSh"><button id="trAuto">自动洗牌 · Auto</button><button class="p" id="trDone">洗好了 · Draw</button></div>
+      <div class="tr-g" id="trGEnd"><button class="p" id="trAgain">重新抽牌 · Redraw</button><button id="trNew">换个问题 · New</button></div>
+      <div class="tr-g" id="trGDet"><button id="trDel">删除 · Delete</button><button class="p" id="trList">返回记录 · Back</button></div>
+    </div>
+  </div>
+</section>
+<script id="tarot-js">
+(()=>{
+'use strict';
+/* ========== 牌阵配置：以后加牌阵，往 SPREADS 里加一项即可 ========== */
+const SPREADS=[
+  {id:'one',zh:'单张',en:'SINGLE',pos:[{zh:'',en:''}]},
+  {id:'ppf',zh:'过去 现在 未来',en:'PAST · PRESENT · FUTURE',pos:[{zh:'过去',en:'Past'},{zh:'现在',en:'Present'},{zh:'未来',en:'Future'}]}
+];
+/* ========== 78 张牌数据 ========== */
+const MAJ=[['愚者','The Fool'],['魔术师','The Magician'],['女祭司','The High Priestess'],['皇后','The Empress'],['皇帝','The Emperor'],['教皇','The Hierophant'],['恋人','The Lovers'],['战车','The Chariot'],['力量','Strength'],['隐者','The Hermit'],['命运之轮','Wheel of Fortune'],['正义','Justice'],['倒吊人','The Hanged Man'],['死神','Death'],['节制','Temperance'],['恶魔','The Devil'],['高塔','The Tower'],['星星','The Star'],['月亮','The Moon'],['太阳','The Sun'],['审判','Judgement'],['世界','The World']];
+const ROM=['0','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX','XXI'];
+const SUITS=[['权杖','Wands','wands'],['圣杯','Cups','cups'],['宝剑','Swords','swords'],['星币','Pentacles','pents']];
+const RZ=['王牌','二','三','四','五','六','七','八','九','十','侍从','骑士','王后','国王'];
+const RE=['Ace','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Page','Knight','Queen','King'];
+const RS=['A','2','3','4','5','6','7','8','9','10','P','Kn','Q','K'];
+const CARDS=[];
+MAJ.forEach((m,i)=>CARDS.push({id:i,major:true,zh:m[0],en:m[1],rom:ROM[i],n:i}));
+SUITS.forEach((s,si)=>RZ.forEach((r,ri)=>CARDS.push({id:22+si*14+ri,major:false,suit:s[2],zh:s[0]+r,en:RE[ri]+' of '+s[1],rank:RS[ri],ri})));
+/* 牌面图：把图放进 tarot/ 文件夹，按编号命名 00.jpg ~ 77.jpg（也支持 png / webp），没有图就用占位牌面。详见 tarot/README.txt */
+const IMG_DIR='tarot/',IMG_EXT=['jpg','png','webp'];
+
+/* ========== 工具 ========== */
+const $=id=>document.getElementById(id);
+const P=$('tarotPage'),askEl=$('trAsk'),histEl=$('trHist'),playEl=$('trPlay'),stage=$('trStage'),rowEl=$('trRow'),deckEl=$('trDeck'),noteEl=$('trNote'),qEl=$('trQ'),qlEl=$('trQL'),spEl=$('trSp'),titleEl=$('trTitle');
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const frame=()=>new Promise(r=>requestAnimationFrame(()=>r()));
+const f2=n=>Math.round(n*100)/100;
+function rnd(n){const a=new Uint32Array(1),lim=Math.floor(4294967296/n)*n;let x;do{crypto.getRandomValues(a);x=a[0]}while(x>=lim);return x%n}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+const CANCEL={};
+let tok=0,spId=SPREADS[0].id,busy=false,vw='ask',lastQ='';
+const store=window.TarotStore||(()=>{const m=[];return{list:()=>m,save:()=>{}}})();
+
+/* 动画：播完把最终样式写回 inline，再取消动画 */
+async function an(el,kf,o){
+  const a=el.animate(kf,Object.assign({duration:600,easing:'cubic-bezier(.22,.8,.24,1)',fill:'both'},o||{}));
+  try{await a.finished}catch(e){return}
+  const last=kf[kf.length-1];
+  if(last.transform!==undefined)el.style.transform=last.transform;
+  if(last.opacity!==undefined)el.style.opacity=last.opacity;
+  try{a.cancel()}catch(e){}
+}
+
+/* ========== 牌背 / 占位牌面：生成成图片，动画时只搬运位图，不重绘矢量 ========== */
+const isDark=()=>!!(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);
+const colors=()=>isDark()?{ink:'#ffffff',bg:'#000000'}:{ink:'#000000',bg:'#ffffff'};
+const svgURI=s=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(s);
+function pt(cx,cy,r,deg){const a=deg*Math.PI/180;return[f2(cx+r*Math.cos(a)),f2(cy+r*Math.sin(a))]}
+const SERIF="Georgia,'Times New Roman',serif";
+function backSVG(C){
+  const ink=C.ink,bg=C.bg;
+  let rays='';
+  for(let i=0;i<24;i++){const d=i*15-90,l=i%2?40:45,p=pt(60,100,36,d),q=pt(60,100,l,d);rays+=`M${p[0]} ${p[1]}L${q[0]} ${q[1]}`}
+  let st='';
+  for(let i=0;i<8;i++){const d=i*45-90,r=i%2?9:20,p=pt(60,100,r,d);st+=(i?'L':'M')+p[0]+' '+p[1]}
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 200"><rect width="120" height="200" rx="10" fill="${ink}"/><g fill="none" stroke="${bg}" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="108" height="188" rx="5" stroke-width=".8"/><rect x="11" y="11" width="98" height="178" rx="3" stroke-width=".4"/><circle cx="60" cy="100" r="34" stroke-width=".8"/><circle cx="60" cy="100" r="28" stroke-width=".4"/><path d="${rays}" stroke-width=".5"/><path d="${st}Z" stroke-width=".6"/><path d="M40 28H52M68 28H80M40 172H52M68 172H80" stroke-width=".5"/></g><g fill="${bg}"><circle cx="60" cy="100" r="1.6"/><circle cx="60" cy="28" r="1.6"/><circle cx="60" cy="172" r="1.6"/></g></svg>`;
+}
+function suitSym(s){
+  if(s==='wands')return '<path d="M-10 40L10 -40" stroke-width="3.2"/><path d="M5 -14Q19 -14 22 -30Q8 -28 5 -14Z"/><path d="M-1 8Q-15 8 -18 -8Q-4 -6 -1 8Z"/><path d="M9 -40Q15 -46 22 -44Q20 -37 12 -36"/>';
+  if(s==='cups')return '<path d="M-22 -24H22Q22 8 0 14Q-22 8 -22 -24Z"/><path d="M0 14V31M-14 34H14"/><path d="M-22 -24Q0 -18 22 -24" stroke-width=".8"/>';
+  if(s==='swords')return '<path d="M0 -42L7 18H-7Z"/><path d="M0 -36V14" stroke-width=".7"/><path d="M-20 18H20"/><path d="M0 18V35"/><circle cx="0" cy="39" r="3.2"/>';
+  let d='';[0,2,4,1,3,0].forEach((k,i)=>{const p=pt(0,0,19,-90+72*k);d+=(i?'L':'M')+p[0]+' '+p[1]});
+  return `<circle cx="0" cy="0" r="30"/><circle cx="0" cy="0" r="26" stroke-width=".5"/><path d="${d}Z"/>`;
+}
+function faceSVG(c,C){
+  const ink=C.ink,bg=C.bg;
+  const nameTxt=`<path d="M40 158H80" stroke-width=".5"/><text x="60" y="172" text-anchor="middle" font-size="6" letter-spacing="1" fill="${ink}" stroke="none" font-family="${SERIF}">${c.en.toUpperCase()}</text>`;
+  const frm=`<rect x="6" y="6" width="108" height="188" rx="5" stroke-width=".8"/><rect x="11" y="11" width="98" height="178" rx="3" stroke-width=".4"/>`;
+  let body='';
+  if(c.major){
+    let rays='';
+    for(let i=0;i<16;i++){const d=i*22.5-90,l=i%2?40:44,p=pt(60,100,38,d),q=pt(60,100,l,d);rays+=`M${p[0]} ${p[1]}L${q[0]} ${q[1]}`}
+    let poly='';
+    if(c.n>0){const s=3+(c.n%8);for(const off of[0,180/s]){let d='';for(let t=0;t<s;t++){const p=pt(60,100,24,-90+c.n*11+off+360*t/s);d+=(t?'L':'M')+p[0]+' '+p[1]}poly+=`<path d="${d}Z" stroke-width="${off?.4:.8}"/>`}}
+    body=`<text x="60" y="36" text-anchor="middle" font-size="14" letter-spacing="2" fill="${ink}" stroke="none" font-family="${SERIF}">${c.rom}</text><path d="M50 43H70" stroke-width=".5"/><circle cx="60" cy="100" r="34" stroke-width=".8"/><circle cx="60" cy="100" r="30" stroke-width=".3"/><path d="${rays}" stroke-width=".5"/>${poly}<circle cx="60" cy="100" r="1.6" fill="${ink}" stroke="none"/>`;
+  }else{
+    const sc=c.ri===0?1.3:(c.ri>=10?1:1.1);
+    body=`<text x="19" y="30" font-size="12" fill="${ink}" stroke="none" font-family="${SERIF}">${c.rank}</text><g transform="translate(21,41) scale(.17)" stroke-width="5">${suitSym(c.suit)}</g><g transform="translate(60,98) scale(${sc})" stroke-width="1.6">${suitSym(c.suit)}</g>`;
+  }
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 200"><rect width="120" height="200" rx="10" fill="${bg}"/><rect x=".5" y=".5" width="119" height="199" rx="9.5" fill="none" stroke="${ink}" stroke-width="1"/><g fill="none" stroke="${ink}" stroke-linecap="round" stroke-linejoin="round">${frm}${body}${nameTxt}</g></svg>`;
+}
+/* 有图就用图：按 tarot/NN.ext 依次尝试 */
+function loadImg(id){
+  const nn=String(id).padStart(2,'0');
+  return new Promise(res=>{
+    let i=0;
+    const next=()=>{
+      if(i>=IMG_EXT.length)return res(null);
+      const src=IMG_DIR+nn+'.'+IMG_EXT[i++],im=new Image();
+      im.onload=()=>res(src);im.onerror=next;im.src=src;
+    };
+    next();
+  });
+}
+const decodeURIImg=src=>{const im=new Image();im.src=src;return im.decode?im.decode().catch(()=>{}):Promise.resolve()};
+
+/* ========== 视图切换 ========== */
+function setView(v){
+  vw=v;
+  askEl.hidden=v!=='ask';histEl.hidden=v!=='hist';playEl.hidden=!(v==='play'||v==='detail');
+  titleEl.textContent=v==='hist'?'占卜记录':'占卜';
+  $('trHb').hidden=v!=='ask';
+  const el=v==='ask'?askEl:v==='hist'?histEl:playEl;
+  el.style.animation='none';void el.offsetWidth;el.style.animation='';
+}
+function setBar(name){['Sh','End','Det'].forEach(k=>$('trG'+k).classList.toggle('on',k===name))}
+function clearShuffle(){stage.onpointerdown=stage.onpointermove=stage.onpointerup=stage.onpointercancel=null}
+function stop(){tok++;busy=false;clearShuffle()}
+function buildSpreads(){
+  spEl.innerHTML='';
+  SPREADS.forEach(s=>{
+    const b=document.createElement('button');b.type='button';b.className=s.id===spId?'on':'';
+    b.innerHTML=`${s.zh}<small>${s.en}</small>`;
+    b.onclick=()=>{spId=s.id;[...spEl.children].forEach(x=>x.classList.toggle('on',x===b))};
+    spEl.append(b);
+  });
+}
+function showAsk(){stop();setBar(null);setView('ask')}
+window.openTarot=function(){buildSpreads();showAsk();P.hidden=false};
+$('trBack').onclick=()=>{
+  if(vw==='ask'){stop();P.hidden=true}
+  else if(vw==='detail'&&detailFrom==='hist')showHist();
+  else showAsk();
+};
+$('trHb').onclick=()=>{qEl.blur();showHist()};
+$('trGo').onclick=()=>{qEl.blur();lastQ=qEl.value.trim();draw()};
+$('trAgain').onclick=()=>{if(!busy)draw()};
+$('trNew').onclick=()=>{if(busy)return;qEl.value='';showAsk()};
+
+/* ========== 布局：槽位 ========== */
+const spreadOf=id=>SPREADS.find(s=>s.id===id)||null;
+function posName(sp,i){const p=sp&&sp.pos[i];return p&&p.zh?p.zh+' · '+p.en.toUpperCase():''}
+function buildSlots(sp,picks,C,revealed){
+  rowEl.innerHTML='';
+  return picks.map((p,i)=>{
+    const s=document.createElement('div');s.className='tr-slot';
+    s.innerHTML=`<div class="tr-pos">${posName(sp,i)}</div><div class="tr-card"><div class="tr-inner"><div class="tr-back"></div><div class="tr-face"><img class="tr-art${p.rev?' rev':''}" alt="" decoding="async"></div></div></div><div class="tr-nm"><b>${p.c.zh}</b><i>${p.c.en}</i><em>${p.rev?'逆位 · Reversed':'正位 · Upright'}</em></div>`;
+    s.querySelector('.tr-back').style.backgroundImage=`url("${svgURI(backSVG(C))}")`;
+    const img=s.querySelector('.tr-art');img.src=svgURI(faceSVG(p.c,C));
+    rowEl.append(s);
+    loadImg(p.c.id).then(src=>{if(src)img.src=src});
+    if(revealed){
+      s.querySelector('.tr-card').style.opacity=1;
+      s.querySelector('.tr-inner').style.transform='rotateY(180deg)';
+      s.querySelector('.tr-pos').style.opacity=1;s.querySelector('.tr-nm').style.opacity=1;
+    }
+    return s;
+  });
+}
+function sizeFor(k){
+  const sw=stage.clientWidth,sh=stage.clientHeight,gap=12;
+  let cw=k===1?Math.min(sw*.5,188,(sh-150)*.6):Math.min((sw-48-(k-1)*gap)/k,124);
+  cw=Math.max(72,Math.floor(cw));
+  const dcw=Math.floor(Math.min(sw*.34,140,(sh-150)*.6));
+  stage.style.setProperty('--cw',cw+'px');stage.style.setProperty('--dcw',dcw+'px');stage.style.setProperty('--gap',gap+'px');
+  return{sw,sh,cw,dcw};
+}
+
+/* ========== 抽牌：自己洗牌 → 展开 → 抽出 → 翻牌 → 自动保存 ========== */
+function setNote(t){noteEl.textContent=t;return an(noteEl,[{opacity:t?1:0}],{duration:300})}
+async function draw(){
+  if(busy)return;
+  busy=true;
+  const my=++tok,chk=()=>{if(my!==tok)throw CANCEL};
+  try{
+    const sp=spreadOf(spId)||SPREADS[0],k=sp.pos.length,q=lastQ;
+    const C=colors();
+    const picks=shuffle(CARDS.map(c=>c.id)).slice(0,k).map(id=>({c:CARDS[id],rev:rnd(2)===1}));
+    setView('play');setBar(null);
+    qlEl.textContent=q;noteEl.style.opacity=0;
+    deckEl.innerHTML='';rowEl.innerHTML='';
+    await frame();await frame();chk();
+    const {sw,cw,dcw}=sizeFor(k),dch=dcw*5/3;
+    const slots=buildSlots(sp,picks,C,false);
+    const backURL=`url("${svgURI(backSVG(C))}")`;
+    await Promise.all([decodeURIImg(svgURI(backSVG(C))),...slots.map(s=>decodeURIImg(s.querySelector('.tr-art').src))]);
+    await frame();chk();
+    const sr=stage.getBoundingClientRect();
+    const rects=slots.map(s=>s.querySelector('.tr-card').getBoundingClientRect());
+    const cx=rects.map(r=>r.left+r.width/2-sr.left),cy=rects.map(r=>r.top+r.height/2-sr.top);
+    const ox=cx.reduce((a,b)=>a+b,0)/k,oy=cy.reduce((a,b)=>a+b,0)/k;
+    deckEl.style.left=f2(ox)+'px';deckEl.style.top=f2(oy)+'px';
+    /* 牌堆：每张牌有自己的位置、角度和速度，手指划过时会被推着走、转起来 */
+    const N=18,els=[];
+    const base=pos=>`translate3d(${f2(pos*.25)}px,${f2(-pos*.6)}px,0)`;
+    for(let i=0;i<N;i++){const d=document.createElement('div');d.className='tr-c';d.style.backgroundImage=backURL;d.style.opacity=0;d.style.zIndex=i;d.style.transform=base(i);deckEl.append(d);els.push(d)}
+    let order=els.map((_,i)=>i);
+    await Promise.all(order.map((ci,pos)=>an(els[ci],[{opacity:0,transform:`translate3d(${f2(pos*.25)}px,${f2(pos*.6+46)}px,0)`},{opacity:1,transform:base(pos)}],{duration:520,delay:pos*22})));
+    chk();
+    const card=els.map((_,i)=>({x:i*.25,y:-i*.6,a:0,vx:0,vy:0,va:0,m:.7+Math.random()*.7,z:i}));
+    const sh2=stage.clientHeight;
+    const xmin=-ox+dcw*.9,xmax=sw-ox-dcw*.9,ymin=-oy+dch*.58,ymax=sh2-oy-dch*.58;
+    let zTop=N,running=false,live=true,finger=false,washed=false,btnBusy=false;
+    const put=i=>{const c=card[i];els[i].style.transform=`translate3d(${f2(c.x)}px,${f2(c.y)}px,0) rotate(${f2(c.a)}deg)`};
+    function tick(){
+      if(!live||my!==tok){running=false;return}
+      let moving=false;
+      for(let i=0;i<N;i++){
+        const c=card[i];
+        c.vx*=.92;c.vy*=.92;c.va*=.9;
+        if(c.x<xmin)c.vx+=(xmin-c.x)*.14;else if(c.x>xmax)c.vx-=(c.x-xmax)*.14;
+        if(c.y<ymin)c.vy+=(ymin-c.y)*.14;else if(c.y>ymax)c.vy-=(c.y-ymax)*.14;
+        c.x+=c.vx;c.y+=c.vy;c.a+=c.va;
+        if(c.x<xmin-14){c.x=xmin-14;c.vx=0}else if(c.x>xmax+14){c.x=xmax+14;c.vx=0}
+        if(c.y<ymin-14){c.y=ymin-14;c.vy=0}else if(c.y>ymax+14){c.y=ymax+14;c.vy=0}
+        if(Math.abs(c.vx)+Math.abs(c.vy)+Math.abs(c.va)>.04){moving=true;put(i)}
+      }
+      if(moving||finger)requestAnimationFrame(tick);else running=false;
+    }
+    const kick=()=>{if(!running){running=true;requestAnimationFrame(tick)}};
+    /* 手指在 (fx,fy)（以牌堆中心为原点）移动了 (dx,dy)：附近的牌被推走并旋转 */
+    function push(fx,fy,dx,dy){
+      washed=true;
+      const R=dcw*.8;
+      for(let i=0;i<N;i++){
+        const c=card[i],rx=c.x-fx,ry=c.y-fy,d=Math.hypot(rx,ry);
+        if(d>R)continue;
+        const w=1-d/R;
+        c.vx+=dx*w*.6/c.m;c.vy+=dy*w*.6/c.m;
+        c.va+=(rx*dy-ry*dx)/(d+26)*w*1.2/c.m+(Math.random()-.5)*w*.8;
+        if(w>.35&&Math.random()<.3){c.z=++zTop;els[i].style.zIndex=c.z}
+      }
+      kick();
+    }
+    let last=null;
+    const toLocal=e=>[e.clientX-sr.left-ox,e.clientY-sr.top-oy];
+    stage.onpointerdown=e=>{
+      if(finger||btnBusy)return;
+      finger=e.pointerId;last=toLocal(e);
+      try{stage.setPointerCapture(e.pointerId)}catch(_){}
+    };
+    stage.onpointermove=e=>{
+      if(finger!==e.pointerId)return;
+      const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];
+      (evs.length?evs:[e]).forEach(ev=>{
+        const cur=toLocal(ev);
+        push(cur[0],cur[1],cur[0]-last[0],cur[1]-last[1]);
+        last=cur;
+      });
+    };
+    const lift=e=>{if(finger===e.pointerId){finger=false;last=null}};
+    stage.onpointerup=lift;stage.onpointercancel=lift;
+    /* 自动洗牌：虚拟手指在牌堆上画圈 */
+    async function autoWash(ms){
+      const t0=performance.now();let px=null,py=null,ang=Math.random()*6.28;
+      for(;;){
+        await frame();chk();
+        const t=performance.now()-t0;if(t>ms)break;
+        ang+=.17;
+        const rr=dcw*.32*(1+.45*Math.sin(t/240));
+        const fx=Math.cos(ang)*rr,fy=Math.sin(ang*1.2)*rr*1.25;
+        if(px!==null)push(fx,fy,(fx-px)*1.3,(fy-py)*1.3);
+        px=fx;py=fy;
+      }
+    }
+    /* 收牌：按层叠顺序重新码成一叠 */
+    async function gather(){
+      live=false;finger=false;clearShuffle();
+      const ord=[...Array(N).keys()].sort((p,q)=>card[p].z-card[q].z);
+      order=ord;
+      await Promise.all(ord.map((ci,pos)=>{
+        const c=card[ci];els[ci].style.zIndex=pos;
+        const ta=Math.round(c.a/360)*360;
+        return an(els[ci],[{transform:`translate3d(${f2(c.x)}px,${f2(c.y)}px,0) rotate(${f2(c.a)}deg)`},{transform:`translate3d(${f2(pos*.25)}px,${f2(-pos*.6)}px,0) rotate(${ta}deg)`}],{duration:560,delay:pos*14,easing:'cubic-bezier(.3,.7,.3,1)'});
+      }));
+      chk();
+      ord.forEach((ci,pos)=>{els[ci].style.transform=base(pos)});
+    }
+    setNote('滑动洗牌 · SWIPE TO SHUFFLE');
+    setBar('Sh');
+    const bAuto=$('trAuto'),bDone=$('trDone');
+    bAuto.disabled=bDone.disabled=false;
+    await new Promise(resolve=>{
+      bAuto.onclick=async()=>{
+        if(btnBusy)return;
+        btnBusy=true;bAuto.disabled=bDone.disabled=true;
+        try{await autoWash(1800)}catch(e){return}
+        btnBusy=false;bAuto.disabled=bDone.disabled=false;
+      };
+      bDone.onclick=async()=>{
+        if(btnBusy)return;
+        btnBusy=true;bAuto.disabled=bDone.disabled=true;
+        try{
+          if(!washed)await autoWash(1100);
+          await wait(120);chk();
+          await gather();
+        }catch(e){return}
+        resolve();
+      };
+    });
+    chk();clearShuffle();setBar(null);
+    /* 扇形展开 */
+    setNote('抽牌 · DRAWING');
+    await wait(120);chk();
+    const R0=.7*dch,maxHalf=(sw-32)/2-(dcw/2+dch*.2);
+    const A=Math.min(50,Math.asin(Math.min(.95,Math.max(.15,maxHalf/R0)))*180/Math.PI);
+    const fanT=(pos,lift)=>{const a=(-A+pos*(2*A/(N-1)))*Math.PI/180;return `translate3d(${f2(R0*Math.sin(a))}px,${f2(R0*(1-Math.cos(a))-(lift||0))}px,0) rotate(${f2(a*180/Math.PI)}deg)`};
+    await Promise.all(order.map((ci,pos)=>an(els[ci],[{transform:fanT(pos)}],{duration:700,delay:pos*18,easing:'cubic-bezier(.3,.8,.3,1)'})));
+    chk();await wait(380);chk();
+    /* 抽出 k 张，飞到槽位 */
+    const pickPos=shuffle(order.map((_,i)=>i)).slice(0,k),picked=new Set(pickPos),sc=cw/dcw;
+    order.forEach((ci,pos)=>{if(!picked.has(pos))an(els[ci],[{opacity:0}],{duration:480,delay:200})});
+    await Promise.all(pickPos.map((pos,j)=>{
+      const el=els[order[pos]];el.style.zIndex=100+j;
+      return an(el,[{transform:fanT(pos)},{transform:fanT(pos,34),offset:.32},{transform:`translate3d(${f2(cx[j]-ox)}px,${f2(cy[j]-oy)}px,0) scale(${f2(sc)})`}],{duration:820,delay:j*320});
+    }));
+    chk();
+    slots.forEach((s,j)=>{s.querySelector('.tr-card').style.opacity=1;els[order[pickPos[j]]].style.opacity=0});
+    await frame();deckEl.innerHTML='';
+    setNote('');
+    await wait(260);chk();
+    /* 依次翻牌 */
+    for(let j=0;j<k;j++){
+      const s=slots[j];
+      an(s.querySelector('.tr-pos'),[{opacity:1}],{duration:320});
+      await an(s.querySelector('.tr-inner'),[{transform:'rotateY(0deg)'},{transform:'rotateY(180deg)'}],{duration:850,easing:'cubic-bezier(.45,.05,.25,1)'});
+      chk();
+      an(s.querySelector('.tr-nm'),[{opacity:0},{opacity:1}],{duration:420});
+      await wait(j<k-1?460:240);chk();
+    }
+    /* 自动保存 */
+    const ts=Date.now();
+    store.list().unshift({id:ts,ts,q,spread:sp.id,cards:picks.map(p=>({id:p.c.id,rev:p.rev}))});
+    store.save();
+    busy=false;
+    setBar('End');
+  }catch(e){
+    if(e!==CANCEL){busy=false;console.error(e)}
+  }
+}
+
+/* ========== 记录 ========== */
+let detailFrom='hist',detailId=null;
+const pad=n=>String(n).padStart(2,'0');
+const fmtTime=ts=>{const d=new Date(ts);return `${d.getMonth()+1}月${d.getDate()}日 ${pad(d.getHours())}:${pad(d.getMinutes())}`};
+const cardLine=e=>e.cards.map(x=>{const c=CARDS[x.id];return c?c.zh+(x.rev?'（逆）':''):''}).filter(Boolean).join(' · ');
+function showHist(){
+  stop();setBar(null);setView('hist');
+  const list=store.list();
+  histEl.innerHTML='';
+  if(!list.length){histEl.innerHTML='<div class="tr-empty">还没有记录</div>';return}
+  list.forEach(e=>{
+    const b=document.createElement('button');b.type='button';b.className='tr-hi';
+    const d=document.createElement('div');d.className='tr-hd';d.textContent=fmtTime(e.ts)+' · '+((spreadOf(e.spread)||{}).zh||'');
+    const q=document.createElement('div');q.className='tr-hq'+(e.q?'':' e');q.textContent=e.q||'没有提问';
+    const c=document.createElement('div');c.className='tr-hc';c.textContent=cardLine(e);
+    b.append(d,q,c);b.onclick=()=>showDetail(e.id,'hist');histEl.append(b);
+  });
+}
+async function showDetail(id,from){
+  const e=store.list().find(x=>x.id===id);if(!e)return showHist();
+  stop();detailFrom=from;detailId=id;
+  const sp=spreadOf(e.spread)||{pos:e.cards.map(()=>({zh:'',en:''}))},picks=e.cards.map(x=>({c:CARDS[x.id],rev:x.rev})).filter(p=>p.c);
+  setView('detail');setBar('Det');
+  const del=$('trDel');del.textContent='删除 · Delete';del.dataset.arm='';
+  qlEl.textContent=e.q||'没有提问';
+  deckEl.innerHTML='';noteEl.textContent=fmtTime(e.ts);noteEl.style.opacity=1;
+  await frame();await frame();
+  sizeFor(picks.length||1);
+  buildSlots(sp,picks,colors(),true);
+}
+$('trDel').onclick=function(){
+  if(this.dataset.arm!=='1'){
+    this.dataset.arm='1';this.textContent='再点一次确认删除';
+    setTimeout(()=>{if(this.dataset.arm==='1'){this.dataset.arm='';this.textContent='删除 · Delete'}},3000);
+    return;
+  }
+  const l=store.list(),i=l.findIndex(x=>x.id===detailId);
+  if(i>=0){l.splice(i,1);store.save()}
+  showHist();
+};
+$('trList').onclick=()=>showHist();
 })();
 </script>
 
