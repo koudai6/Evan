@@ -3344,7 +3344,43 @@ lp.innerHTML=`<div class="lt-blur"></div><div class="lt-bg"></div><div class="lt
 <div class="lt-scrim"></div>
 <div class="lt-pan"><div class="lt-tabs"><button data-t="q" class="on">播放列表<i id="ltQn"></i></button><button data-t="n">网易云歌单</button><span class="sp"></span><button id="ltShX" aria-label="收起">${IC2.down}</button></div><div class="lt-sbody" id="ltSB"></div></div>`;
 const mn=h('div');mn.id='ltMini';mn.hidden=true;mn.innerHTML='<span class="lm-cv" id="lmCv"></span><span class="lm-t" id="lmT"></span><button class="lm-p" id="lmP"></button>';
+
 document.body.append(lp,mn);
+/* 一起听新增：个人主页与字卡聊天 */
+const ltNav=document.createElement('div');ltNav.className='lt-nav';ltNav.innerHTML='<button data-v="play" class="on">正在播放</button><button data-v="profile">我的主页</button><button data-v="chat">一起聊</button>';
+lp.insertBefore(ltNav,lp.querySelector('.lt-top').nextSibling);
+const ltProfile=document.createElement('section');ltProfile.className='lt-extra lt-profile';ltProfile.innerHTML='<div class="lt-extra-head"><button data-back>‹ 返回播放</button><b>我的网易云主页</b><button data-edit>编辑</button></div><div class="lt-profile-hero"><div class="lt-profile-av"></div><h2 class="lt-profile-name">我的音乐主页</h2><p class="lt-profile-sub">听歌是一种生活方式</p><div class="lt-profile-stats"><span><b>—</b>关注</span><span><b>—</b>粉丝</span><span><b>—</b>听歌</span></div></div><div class="lt-profile-section"><b>我的歌单</b><div class="lt-profile-lists"></div><button class="lt-profile-open">查看网易云歌单　›</button></div>';
+const ltChat=document.createElement('section');ltChat.className='lt-extra lt-chat';ltChat.innerHTML='<div class="lt-extra-head"><button data-back>‹ 返回播放</button><b>一起听 · 聊天</b><span></span></div><div class="lt-chat-now"></div><div class="lt-chat-feed"></div><div class="lt-chat-compose"><button class="lt-chat-card">字卡</button><input placeholder="说点什么…" maxlength="500"><button class="lt-chat-send">发送</button></div>';
+lp.append(ltProfile,ltChat);
+function ltView(v){lp.dataset.view=v;ltNav.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));if(v==='profile')ltProfilePaint();if(v==='chat')ltChatPaint()}
+ltNav.addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b)ltView(b.dataset.v)});
+[ltProfile,ltChat].forEach(x=>x.querySelector('[data-back]').onclick=()=>ltView('play'));
+function ltProfilePaint(){
+ const n=ncmFix(),p=n.profile||{},hero=ltProfile.querySelector('.lt-profile-hero'),av=ltProfile.querySelector('.lt-profile-av');
+ av.innerHTML=p.avatar?'<img src="'+p.avatar+'">':'♫';ltProfile.querySelector('.lt-profile-name').textContent=p.nickname||p.name||'我的网易云主页';
+ ltProfile.querySelector('.lt-profile-sub').textContent=p.signature||'记录喜欢的音乐与日常';
+ const lists=ltProfile.querySelector('.lt-profile-lists');lists.innerHTML='';
+ const data=NP.lists||[];
+ if(data.length){data.slice(0,4).forEach(x=>{const d=document.createElement('div');d.className='lt-profile-list';d.innerHTML='<span class="lt-profile-cover">♫</span><span><b></b><small></small></span>';d.querySelector('b').textContent=x.name||'我的歌单';d.querySelector('small').textContent=(x.trackCount||0)+' 首歌曲';lists.append(d)})}
+ else lists.innerHTML='<p class="lt-profile-empty">'+(p.uid?'歌单尚未加载，点击下方查看':'连接网易云并登录后，这里会显示你的个人资料和歌单')+'</p>';
+}
+ltProfile.querySelector('.lt-profile-open').onclick=()=>{ltView('play');openSheet('n')};
+ltProfile.querySelector('[data-edit]').onclick=()=>{ltView('play');ncmDlg()};
+function ltChatPaint(){
+ const ct=lt.ct||cur(),feed=ltChat.querySelector('.lt-chat-feed'),s=sg();
+ ltChat.querySelector('.lt-chat-now').textContent=(s?s.title+' · '+(s.artist||''):'还没有正在播放的歌曲')+'　正在和 '+(ct.profile.name||'对方')+' 一起听';
+ feed.innerHTML='';
+ (ct.msgs||[]).slice(-80).forEach(m=>{const row=document.createElement('div');row.className='lt-chat-msg '+(m.mine?'mine':'theirs');const bubble=document.createElement('div');bubble.className='lt-chat-bubble';if(m.type==='image'&&m.src){const im=document.createElement('img');im.src=m.src;bubble.append(im)}else bubble.textContent=m.text||'';row.append(bubble);feed.append(row)});
+ feed.scrollTop=feed.scrollHeight;
+}
+function ltChatSend(text){
+ const ct=lt.ct||cur(),v=String(text||'').trim();if(!v)return;
+ ct.msgs.push({id:Date.now()+Math.random(),mine:true,t:Date.now(),text:v});save();ltChatPaint();auto(ct);
+}
+ltChat.querySelector('.lt-chat-send').onclick=()=>{const inp=ltChat.querySelector('input');ltChatSend(inp.value);inp.value=''};
+ltChat.querySelector('input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();ltChat.querySelector('.lt-chat-send').click()}});
+ltChat.querySelector('.lt-chat-card').onclick=()=>{const ct=lt.ct||cur(),cards=pickCards(ct,1);if(!cards.length){toast('当前聊天没有可用字卡');return}const c=cards[0];if(c.type==='image')ct.msgs.push({id:Date.now()+Math.random(),mine:true,t:Date.now(),type:'image',src:c.content,sticker:true});else ct.msgs.push({id:Date.now()+Math.random(),mine:true,t:Date.now(),text:c.content});save();ltChatPaint();auto(ct)};
+
 const sg=()=>G.listen.songs[G.listen.idx];
 const mm=t=>isFinite(t)&&t>0?Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0'):'0:00';
 const grad=s=>{let n=0;for(const c of s.title)n=(n*31+c.charCodeAt(0))%360;return 'linear-gradient(135deg,hsl('+n+' 12% 38%),hsl('+(n+40)%360+' 10% 18%))'};
@@ -3372,6 +3408,7 @@ function ltPaint(){
   $('lmT').textContent=s?s.title:'一起听';
   lp.classList.toggle('playing',pl);mn.classList.toggle('lm-on',pl);
   if(typeof sheetDraw==='function'&&shOn())sheetDraw();
+  if(lp.dataset.view==='chat')ltChatPaint();if(lp.dataset.view==='profile')ltProfilePaint();
 }
 function ltProg(){
   const d=au.duration,c=au.currentTime,ready=au.readyState>=1&&Number.isFinite(d)&&d>0;
@@ -4939,4 +4976,42 @@ html.cs-ref #chat .r.rf.mine>.m,html.cs-ref #chat .r.rf.mine>.av2,html.cs-ref #c
 html.cs-ref #chat .r.rf.theirs>.av2,html.cs-ref #chat .r.rf.theirs>.avsp{order:0!important}
 html.cs-ref #chat .r.rf.theirs>.m{order:1!important}
 html.cs-ref #chat .r.rf.theirs>.ts{order:2!important}
+
+/* 一起听：网易云风格层级与个人主页 / 聊天 */
+#lt{--lt-accent:#e84b55}
+.lt-nav{position:relative;z-index:2;display:flex;justify-content:center;gap:7px;margin:4px auto 0;padding:4px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.12);border-radius:22px;width:max-content;max-width:94%}
+.lt-nav button{border:0;background:transparent;color:rgba(255,255,255,.72);padding:7px 13px;border-radius:18px;font-size:12px}
+.lt-nav button.on{background:rgba(255,255,255,.22);color:#fff;font-weight:650}
+#lt[data-view="profile"] .lt-top,#lt[data-view="profile"] .lt-tog,#lt[data-view="profile"] .lt-stage,#lt[data-view="profile"] .lt-acts,#lt[data-view="profile"] .lt-prog,#lt[data-view="profile"] .lt-ctl,
+#lt[data-view="chat"] .lt-top,#lt[data-view="chat"] .lt-tog,#lt[data-view="chat"] .lt-stage,#lt[data-view="chat"] .lt-acts,#lt[data-view="chat"] .lt-prog,#lt[data-view="chat"] .lt-ctl{display:none!important}
+.lt-extra{display:none;position:absolute;z-index:3;inset:104px 0 0;min-height:0;background:rgba(18,18,20,.94);backdrop-filter:blur(22px);color:#fff;overflow:hidden}
+#lt[data-view="profile"] .lt-profile,#lt[data-view="chat"] .lt-chat{display:flex;flex-direction:column}
+.lt-extra-head{height:48px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 17px;border-bottom:1px solid rgba(255,255,255,.1)}
+.lt-extra-head button{border:0;background:none;color:#fff;font-size:13px}
+.lt-profile{overflow:auto;padding-bottom:24px}
+.lt-profile-hero{text-align:center;padding:28px 18px 22px;background:linear-gradient(180deg,rgba(255,255,255,.09),transparent)}
+.lt-profile-av{width:82px;height:82px;border-radius:50%;margin:auto;background:#38383d;display:grid;place-items:center;font-size:34px;overflow:hidden;border:3px solid rgba(255,255,255,.2)}
+.lt-profile-av img{width:100%;height:100%;object-fit:cover}
+.lt-profile-name{font-size:21px;margin:12px 0 5px}.lt-profile-sub{font-size:12px;color:#aaa;margin:0}
+.lt-profile-stats{display:flex;justify-content:center;gap:38px;margin-top:20px;color:#aaa;font-size:11px}
+.lt-profile-stats span{display:grid;gap:4px}.lt-profile-stats b{font-size:17px;color:#fff}
+.lt-profile-section{padding:18px}.lt-profile-section>b{font-size:15px}
+.lt-profile-lists{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:13px 0}
+.lt-profile-list{display:flex;align-items:center;gap:9px;min-width:0;font-size:12px}
+.lt-profile-list>span:last-child{min-width:0;display:grid;gap:4px}.lt-profile-list b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lt-profile-list small,.lt-profile-empty{font-size:11px;color:#999}
+.lt-profile-cover{width:48px;height:48px;border-radius:8px;background:linear-gradient(135deg,#555,#222);display:grid;place-items:center;font-size:20px}
+.lt-profile-open{width:100%;padding:12px;border-radius:22px;border:1px solid #555;background:rgba(255,255,255,.08);color:#fff}
+.lt-chat{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+.lt-chat-now{flex:none;padding:10px 15px;font-size:11px;color:#aaa;background:rgba(255,255,255,.04);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lt-chat-feed{flex:1;min-height:0;overflow:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.lt-chat-msg{display:flex}.lt-chat-msg.mine{justify-content:flex-end}
+.lt-chat-bubble{max-width:78%;padding:10px 13px;border-radius:16px;background:#39393e;color:#f6f6f6;font-size:14px;line-height:1.45;overflow-wrap:anywhere}
+.lt-chat-msg.mine .lt-chat-bubble{background:#f1f1f1;color:#171717;border-bottom-right-radius:5px}
+.lt-chat-msg.theirs .lt-chat-bubble{border-bottom-left-radius:5px}
+.lt-chat-bubble img{display:block;max-width:150px;max-height:170px;object-fit:contain;border-radius:8px}
+.lt-chat-compose{flex:none;display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid rgba(255,255,255,.1)}
+.lt-chat-compose input{flex:1;min-width:0;border:0;outline:0;border-radius:20px;background:#333338;color:#fff;padding:11px 14px;font-size:14px}
+.lt-chat-compose button{border:0;border-radius:18px;padding:9px 12px;background:#eee;color:#171717;font-size:12px}
+.lt-chat-compose .lt-chat-card{background:#39393e;color:#fff;border:1px solid #555}
+@media(max-height:700px){.lt-extra{inset:96px 0 0}.lt-profile-hero{padding:16px}.lt-profile-av{width:65px;height:65px}}
 </style>
