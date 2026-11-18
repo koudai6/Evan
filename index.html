@@ -2587,7 +2587,7 @@ const gName=id=>(S.groups.find(g=>g.id===id)||S.groups[0]).name;
 const mk=(type,content,group)=>({id:S.cardSeq++,type,content,group,enabled:true});
 $('mX').onclick=()=>{$('modal').hidden=true};
 function modal(title,build,btns){
-  const my=++modalSeq;$('mTitle').textContent=title;const b=$('mBody');b.innerHTML='';if(build)build(b);
+  const my=++modalSeq;$('mTitle').textContent=title;const b=$('mBody');b.innerHTML='';if(build){try{build(b)}catch(e){console.error(e);b.append(h('div','hint','出错了：'+(e&&e.message?e.message:e)))}}
   const r=$('mBtns');r.innerHTML='';
   btns.forEach(([t,fn,cls])=>{const x=h('button',cls||'',t);x.onclick=()=>{const rr=fn?fn():undefined;if(rr!==false&&my===modalSeq)$('modal').hidden=true};r.append(x)});
   modalAt=Date.now();$('modal').hidden=false;
@@ -3426,7 +3426,8 @@ setInterval(()=>{if(lt.on){paintListenTime()}},1000);
 /* ========== 网易云（第三方 API · 扫码登录 · 歌单/搜索 → 一起听） ========== */
 G.ncm={api:'',level:'standard',profile:null};
 const NCM={ck:'',ckOk:false};
-const ncmBase=()=>String(G.ncm.api||'').trim().replace(/\/+$/,'');
+const ncmFix=()=>{if(!G.ncm||typeof G.ncm!=='object')G.ncm={api:'',level:'standard',profile:null};return G.ncm};
+const ncmBase=()=>String(ncmFix().api||'').trim().replace(/\/+$/,'');
 /* 登录凭证只放在本机 IndexedDB，不进聊天备份 */
 async function ncmCk(){if(!NCM.ckOk){NCM.ck=(await kv.get('ncm_ck'))||'';NCM.ckOk=true}return NCM.ck}
 async function ncmCall(path,params,noAuth){
@@ -3475,6 +3476,7 @@ async function ncmProfile(){
   return G.ncm.profile;
 }
 function ncmDlg(){
+  ncmFix();
   let my=0;
   const alive=()=>my===modalSeq&&!$('modal').hidden;
   const B=()=>$('mBody');
