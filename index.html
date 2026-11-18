@@ -1561,7 +1561,8 @@ PPI.listen='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 0 
 PPI.calllog='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.6 21 3 13.4 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>';
 PPI.mystat='<svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M5 3h14a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-6l-4.5 4v-4H5a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3zm3.6 4.6a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm6.8 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zM8.4 11.6h7.2a3.6 3.6 0 0 1-7.2 0z"/></svg>';
 PPI.tarot='<svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM12.0 7.2 L13.12 10.06 L16.18 10.24 L13.81 12.19 L14.59 15.16 L12.0 13.5 L9.41 15.16 L10.19 12.19 L7.82 10.24 L10.88 10.06Z"/></svg>';
-const PP_ITEMS=[['cards','字卡库'],['transfer','转账'],['poll','抉择'],['moments','朋友圈'],['cfg','设置'],['pat','拍一拍'],['skin','装扮'],['listen','一起听'],['calllog','通话记录'],['mystat','我的状态'],['tarot','占卜']];
+PPI.ncm='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>';
+const PP_ITEMS=[['cards','字卡库'],['transfer','转账'],['poll','抉择'],['moments','朋友圈'],['cfg','设置'],['pat','拍一拍'],['skin','装扮'],['listen','一起听'],['calllog','通话记录'],['mystat','我的状态'],['tarot','占卜'],['ncm','网易云']];
 function plusAction(a){
   if(a==='image')pickFiles(1280,.82,()=>{});
   else if(a==='cfg')openCfg();
@@ -1576,6 +1577,7 @@ function plusAction(a){
   else if(a==='calllog')openCallLogs();
   else if(a==='mystat')myStatDlg();
   else if(a==='tarot')openTarot();
+  else if(a==='ncm')ncmDlg();
   else toast('这个功能下一步接入');
 }
 function buildPP(){
@@ -3292,6 +3294,7 @@ function ltProg(){
 }
 async function playSong(i){
   const L=G.listen;if(!L.songs.length)return;L.idx=(i+L.songs.length)%L.songs.length;const s=sg();let src=s.src;
+  if(s.kind==='ncm'){src=await ncmSongUrl(s.nid);if(!src){toast('这首歌拿不到播放地址');return}}
   if(s.kind==='file'){const b=await kv.get('mus'+s.id);if(!b){toast('本地音频已丢失，请重新导入');return}if(lt.url)URL.revokeObjectURL(lt.url);src=lt.url=URL.createObjectURL(b)}
   au.pause();au.removeAttribute('src');au.load();
   au.src=src;au.load();ltProg();ltPaint();
@@ -3384,7 +3387,8 @@ function addDlg(){
     f.onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='audio/*';i.multiple=true;
       i.onchange=async()=>{const fs=[...i.files],arr=[];for(const file of fs){const id=Date.now()+Math.random().toString(36).slice(2,6);await kv.set('mus'+id,file);arr.push({id,title:file.name.replace(/\.\w+$/,''),artist:'',src:'',kind:'file'})}
         if(arr.length){const L=G.listen,first=L.songs.length;arr.forEach(x=>L.songs.push({cover:'',...x}));save();$('modal').hidden=true;ltPaint();playSong(first)}};i.click()};
-    b.append(ta,h('div','hint','QQ音乐、酷狗、Spotify 等平台没有公开直链，无法直接播放；网易云的 VIP / 无版权歌曲也可能播不出来。'),f);
+    const nb=h('button','','从网易云账号 / 歌单导入');nb.style.marginTop='10px';nb.onclick=()=>ncmDlg();
+    b.append(ta,h('div','hint','QQ音乐、酷狗、Spotify 等平台没有公开直链，无法直接播放；网易云的 VIP / 无版权歌曲也可能播不出来。'),f,nb);
   },[['取消'],['导入',()=>{const {out,bad}=parseLinks(ta.value);
     if(!out.length){toast(bad?'这个平台或链接类型暂不支持播放':'没有识别到链接');return false}
     if(bad)toast('已导入 '+out.length+' 首，'+bad+' 个链接暂不支持');addSongs(out)},'primary']]);
@@ -3394,7 +3398,7 @@ function listDlg(){
     const box=h('div'),draw=()=>{box.innerHTML='';const L=G.listen;
       if(!L.songs.length)box.append(h('div','hint','还没有歌曲'));
       L.songs.forEach((s,i)=>{const r=h('div','lt-row'+(i===L.idx?' on':'')),d=h('div'),x=h('button','','×');
-        d.append(h('b','',s.title),h('small','',s.artist||(s.kind==='file'?'本地文件':s.kind==='163'?'网易云':'音频链接')));
+        d.append(h('b','',s.title),h('small','',s.artist||(s.kind==='file'?'本地文件':(s.kind==='163'||s.kind==='ncm')?'网易云':'音频链接')));
         d.onclick=()=>{$('modal').hidden=true;playSong(i)};
         x.onclick=()=>{L.songs.splice(i,1);if(s.kind==='file')kv.set('mus'+s.id,null);
           if(i<L.idx)L.idx--;else if(i===L.idx){au.pause();au.removeAttribute('src');L.idx=Math.min(L.idx,Math.max(0,L.songs.length-1))}
@@ -3419,6 +3423,204 @@ lp.querySelector('.lt-disc').onclick=discDlg;
 $('ltMode').onclick=()=>{const modes=['one','list','order'],i=modes.indexOf(G.listen.mode||'list');G.listen.mode=modes[(i+1)%modes.length];save();paintListenMode();toast('播放模式：'+modeNames[G.listen.mode])};
 $('ltAdd').onclick=addDlg;$('ltList').onclick=listDlg;
 setInterval(()=>{if(lt.on){paintListenTime()}},1000);
+/* ========== 网易云（第三方 API · 扫码登录 · 歌单/搜索 → 一起听） ========== */
+G.ncm={api:'',level:'standard',profile:null};
+const NCM={ck:'',ckOk:false};
+const ncmBase=()=>String(G.ncm.api||'').trim().replace(/\/+$/,'');
+/* 登录凭证只放在本机 IndexedDB，不进聊天备份 */
+async function ncmCk(){if(!NCM.ckOk){NCM.ck=(await kv.get('ncm_ck'))||'';NCM.ckOk=true}return NCM.ck}
+async function ncmCall(path,params,noAuth){
+  const base=ncmBase();
+  if(!base)throw Error('请先填写 API 地址');
+  if(location.protocol==='https:'&&/^http:\/\//i.test(base))throw Error('网站是 https，API 地址也必须是 https');
+  const body=new URLSearchParams();
+  Object.keys(params||{}).forEach(k=>body.set(k,params[k]));
+  if(!noAuth){const ck=await ncmCk();if(ck)body.set('cookie',ck)}
+  body.set('timestamp',String(Date.now()));
+  const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),15000);
+  try{
+    const r=await fetch(base+path,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body.toString(),signal:ac.signal});
+    return await r.json();
+  }catch(e){
+    throw Error(e&&e.name==='AbortError'?'连接超时':'连接失败：请检查 API 地址、是否为 https，以及服务是否允许跨域');
+  }finally{clearTimeout(tm)}
+}
+const https=u=>location.protocol==='https:'?String(u||'').replace(/^http:\/\//i,'https://'):String(u||'');
+/* 播放时现取地址（链接会过期）；拿不到就退回网易云公开外链 */
+async function ncmSongUrl(id){
+  try{
+    const r=await ncmCall('/song/url/v1',{id:String(id),level:G.ncm.level||'standard'});
+    const u=r&&r.data&&r.data[0]&&r.data[0].url;
+    if(u)return https(u);
+  }catch(e){}
+  return 'https://music.163.com/song/media/outer/url?id='+id+'.mp3';
+}
+const ncmSong=s=>{
+  const al=s.al||s.album||{},pic=https(al.picUrl);
+  return{nid:s.id,title:s.name||('歌曲 '+s.id),artist:(s.ar||s.artists||[]).map(a=>a.name).join(' / '),cover:pic?pic+(pic.includes('?')?'':'?param=300y300'):'',src:'',kind:'ncm'};
+};
+function ncmAdd(list){
+  const have=new Set(G.listen.songs.filter(x=>x.kind==='ncm').map(x=>x.nid));
+  const fresh=list.filter(x=>!have.has(x.nid));
+  if(!fresh.length){toast('已经在播放列表里了');return 0}
+  if(lt.on)addSongs(fresh);
+  else{fresh.forEach(x=>G.listen.songs.push({id:Date.now()+Math.random().toString(36).slice(2,6),cover:'',...x}));save();ltPaint();toast('已加入播放列表 '+fresh.length+' 首，在「一起听」里播放')}
+  return fresh.length;
+}
+async function ncmProfile(){
+  const r=await ncmCall('/user/account',{});
+  const pf=r&&(r.profile||(r.data&&r.data.profile));
+  if(!pf)return null;
+  G.ncm.profile={uid:pf.userId,name:pf.nickname||'已登录',avatar:https(pf.avatarUrl)};save();
+  return G.ncm.profile;
+}
+function ncmDlg(){
+  let my=0;
+  const alive=()=>my===modalSeq&&!$('modal').hidden;
+  const B=()=>$('mBody');
+  const btn=(t,fn,p)=>{const x=h('button','nc-btn'+(p?' p':''),t);x.onclick=fn;return x};
+  const rowOf=(img,t,s,right)=>{
+    const r=h('div','nc-row'),im=img?h('img'):h('div','nc-ph');
+    if(img){im.src=img;im.loading='lazy';im.onerror=()=>{im.style.visibility='hidden'}}
+    const d=h('div','nc-t');d.append(h('b','',t),h('small','',s||''));
+    r.append(im,d);if(right)r.append(right);return r;
+  };
+  const err=e=>{if(alive())toast(e&&e.message?e.message:'出错了')};
+  /* ---- 首页 ---- */
+  function home(){
+    const b=B();b.innerHTML='';
+    const base=ncmBase(),pf=G.ncm.profile;
+    if(!base){addrView();return}
+    if(pf){
+      const r=rowOf(pf.avatar,pf.name,'已登录 · '+base.replace(/^https?:\/\//,''));
+      b.append(r);
+      b.append(btn('我的歌单',lists,true),btn('搜索歌曲',search));
+      const sel=h('select','nc-in');[['standard','音质：标准'],['exhigh','音质：较高'],['lossless','音质：无损（需会员）']].forEach(([v,t])=>{const o=h('option','',t);o.value=v;sel.append(o)});
+      sel.value=G.ncm.level||'standard';sel.onchange=()=>{G.ncm.level=sel.value;save()};
+      b.append(sel,btn('退出登录',async()=>{NCM.ck='';NCM.ckOk=true;await kv.set('ncm_ck','');G.ncm.profile=null;save();toast('已退出');home()}),btn('修改 API 地址',addrView));
+    }else{
+      b.append(h('div','hint','API 地址：'+base),btn('扫码登录',qr,true),btn('修改 API 地址',addrView));
+    }
+    b.append(h('div','hint','登录凭证只保存在这台设备上，不会进入聊天备份。网易云的 VIP / 无版权歌曲可能播不出来。'));
+  }
+  /* ---- API 地址 ---- */
+  function addrView(){
+    const b=B();b.innerHTML='';
+    b.append(h('div','hint','填你自己部署的网易云 API 服务地址，例如 https://xxx.vercel.app 。网站是 https，所以这里也必须是 https。'));
+    const i=h('input','nc-in');i.type='url';i.placeholder='https://';i.value=G.ncm.api||'';i.autocapitalize='off';i.autocomplete='off';i.spellcheck=false;
+    i.style.margin='10px 0';
+    b.append(i,btn('保存并测试',async()=>{
+      const v=i.value.trim().replace(/\/+$/,'');
+      if(!/^https?:\/\//i.test(v)){toast('地址要以 https:// 开头');return}
+      const old=G.ncm.api;G.ncm.api=v;
+      try{
+        const k=await ncmCall('/login/qr/key',{},true);
+        if(!((k.data&&k.data.unikey)||k.unikey))throw Error('这个地址不像是网易云 API 服务');
+        if(old!==v){G.ncm.profile=null;NCM.ck='';NCM.ckOk=true;kv.set('ncm_ck','')}
+        save();toast('连接成功');home();
+      }catch(e){G.ncm.api=old;err(e)}
+    },true));
+    if(ncmBase())b.append(btn('取消',home));
+  }
+  /* ---- 扫码登录 ---- */
+  async function qr(){
+    const b=B();b.innerHTML='';
+    const img=h('img','nc-qr'),st=h('div','hint','正在获取二维码…');st.style.textAlign='center';
+    let stopped=false;
+    b.append(img,st,btn('返回',()=>{stopped=true;home()}));
+    try{
+      const k=await ncmCall('/login/qr/key',{},true);
+      const key=(k.data&&k.data.unikey)||k.unikey;if(!key)throw Error('获取登录 key 失败');
+      const c=await ncmCall('/login/qr/create',{key,qrimg:'true'},true);
+      const qi=c.data&&c.data.qrimg;if(!qi)throw Error('生成二维码失败');
+      img.src=qi;st.textContent='用网易云音乐 App 扫描二维码';
+      let fails=0;
+      for(;;){
+        await new Promise(r=>setTimeout(r,2000));
+        if(stopped||!alive())return;
+        let r;
+        try{r=await ncmCall('/login/qr/check',{key},true);fails=0}catch(e){if(++fails>=3)throw e;continue}
+        if(stopped||!alive())return;
+        if(r.code===800){st.textContent='二维码已过期';b.append(btn('重新获取',qr,true));return}
+        if(r.code===802)st.textContent='已扫码，请在手机上点确认';
+        if(r.code===803){
+          if(!r.cookie)throw Error('没有拿到登录凭证');
+          NCM.ck=r.cookie;NCM.ckOk=true;await kv.set('ncm_ck',r.cookie);
+          const p=await ncmProfile();
+          if(!p){NCM.ck='';await kv.set('ncm_ck','');throw Error('登录成功但读取账号失败')}
+          toast('登录成功');home();return;
+        }
+      }
+    }catch(e){if(alive()&&!stopped){st.textContent=e.message||'出错了';b.append(btn('重试',qr,true),btn('返回',home))}}
+  }
+  /* ---- 歌曲列表（歌单内容 / 搜索结果共用） ---- */
+  function songs(title,list,backFn){
+    const b=B();b.innerHTML='';
+    b.append(btn('‹ 返回',backFn));
+    b.append(h('div','nc-h',title));
+    if(!list.length){b.append(h('div','hint','没有歌曲'));return}
+    b.append(btn('全部加入播放列表（'+list.length+' 首）',()=>{ncmAdd(list.map(ncmSong))},true));
+    list.forEach(s=>{
+      const x=h('button','nc-add','+');
+      x.onclick=e=>{e.stopPropagation();const n=ncmAdd([ncmSong(s)]);if(n){x.textContent='✓';x.disabled=true}};
+      const al=s.al||s.album||{};
+      b.append(rowOf(al.picUrl?https(al.picUrl)+'?param=100y100':'',s.name,(s.ar||s.artists||[]).map(a=>a.name).join(' / '),x));
+    });
+  }
+  /* ---- 我的歌单 ---- */
+  async function lists(){
+    const b=B();b.innerHTML='';b.append(btn('‹ 返回',home),h('div','hint','读取中…'));
+    try{
+      const pf=G.ncm.profile;
+      const r=await ncmCall('/user/playlist',{uid:String(pf.uid),limit:'100'});
+      if(!alive())return;
+      const pl=r.playlist||[];
+      b.innerHTML='';b.append(btn('‹ 返回',home),h('div','nc-h','我的歌单'));
+      if(!pl.length)b.append(h('div','hint','没有歌单'));
+      pl.forEach(p=>{
+        const row=rowOf(p.coverImgUrl?https(p.coverImgUrl)+'?param=100y100':'',p.name,p.trackCount+' 首');
+        row.style.cursor='pointer';row.onclick=()=>tracks(p);b.append(row);
+      });
+    }catch(e){err(e);if(alive())home()}
+  }
+  async function tracks(p){
+    const b=B();b.innerHTML='';b.append(btn('‹ 返回',lists),h('div','hint','读取中…'));
+    try{
+      const r=await ncmCall('/playlist/track/all',{id:String(p.id),limit:'200',offset:'0'});
+      if(!alive())return;
+      songs(p.name,r.songs||[],lists);
+    }catch(e){err(e);if(alive())lists()}
+  }
+  /* ---- 搜索 ---- */
+  function search(){
+    const b=B();b.innerHTML='';
+    b.append(btn('‹ 返回',home));
+    const i=h('input','nc-in');i.type='search';i.placeholder='歌名 / 歌手';i.style.margin='10px 0';i.autocomplete='off';
+    const box=h('div');
+    const go=async()=>{
+      const q=i.value.trim();if(!q)return;
+      box.innerHTML='';box.append(h('div','hint','搜索中…'));
+      try{
+        const r=await ncmCall('/cloudsearch',{keywords:q,limit:'30'});
+        if(!alive())return;
+        const list=(r.result&&r.result.songs)||[];
+        box.innerHTML='';
+        if(!list.length){box.append(h('div','hint','没有搜到'));return}
+        box.append(btn('全部加入播放列表（'+list.length+' 首）',()=>{ncmAdd(list.map(ncmSong))},true));
+        list.forEach(s=>{
+          const x=h('button','nc-add','+');
+          x.onclick=()=>{const n=ncmAdd([ncmSong(s)]);if(n){x.textContent='✓';x.disabled=true}};
+          const al=s.al||{};
+          box.append(rowOf(al.picUrl?https(al.picUrl)+'?param=100y100':'',s.name,(s.ar||[]).map(a=>a.name).join(' / '),x));
+        });
+      }catch(e){box.innerHTML='';err(e)}
+    };
+    i.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();i.blur();go()}};
+    b.append(i,btn('搜索',go,true),box);
+  }
+  modal('网易云',()=>{my=modalSeq;ncmCk().then(()=>{if(alive())home()});home()},[['关闭']]);
+}
+
 $('ltT').onclick=()=>{const s=sg();if(!s)return;let a,b2;
   modal('编辑歌曲',b=>{a=h('input');a.value=s.title;a.placeholder='歌名';b2=h('input');b2.value=s.artist;b2.placeholder='歌手';b2.style.marginTop='8px';
     const c=h('button','','更换封面');c.style.marginTop='8px';c.onclick=()=>pickFile(600,.8,u=>{s.cover=u;save();ltPaint()});b.append(a,b2,c)},
@@ -3439,6 +3641,7 @@ $('ltT').onclick=()=>{const s=sg();if(!s)return;let a,b2;
     if(d.sys)G.sys={...G.sys,...d.sys};
     if(d.listen&&Array.isArray(d.listen.songs))G.listen=d.listen;
     if(Array.isArray(d.tarot))G.tarot=d.tarot;
+    if(d.ncm&&typeof d.ncm==='object')G.ncm=Object.assign(G.ncm,d.ncm);
   }
   if(lite&&Array.isArray(lite.contacts))lite.contacts.forEach(lc=>{const ct=ctOf(lc.id);if(ct){{const {avatar,myAvatar,bg,callBg,momCover,...lp}=lc.profile||{};ct.profile={...ct.profile,...lp}}ct.cfg={...ct.cfg,...lc.cfg};if(lc.sel)ct.sel=lc.sel}});
   G.cards=(G.cards||[]).filter(Boolean);
@@ -3659,6 +3862,21 @@ html,body{overscroll-behavior-y:none}
 })();
 </script>
 
+<style id="ncm-css">
+#modal .nc-btn{display:block;width:100%;margin-top:10px;padding:12px;border:0;border-radius:12px;background:var(--gray);color:var(--ink);font:inherit;font-size:15px;text-align:center}
+#modal .nc-btn.p{background:var(--ink);color:var(--bg)}
+#modal .nc-in{display:block;width:100%;box-sizing:border-box;margin-top:10px;padding:11px 14px;border:0;border-radius:12px;background:var(--gray);color:var(--ink);font:inherit;font-size:16px;outline:none;-webkit-appearance:none;appearance:none}
+#modal .nc-h{margin:14px 0 2px;font-size:13px;color:var(--mute);letter-spacing:.06em}
+#modal .nc-qr{display:block;width:200px;height:200px;margin:12px auto 8px;padding:10px;border-radius:12px;background:#fff;box-sizing:content-box;object-fit:contain}
+#modal .nc-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+#modal .nc-row img,#modal .nc-row .nc-ph{width:44px;height:44px;flex:none;border-radius:8px;object-fit:cover;background:var(--gray)}
+#modal .nc-row .nc-t{flex:1;min-width:0}
+#modal .nc-row .nc-t b{display:block;font-size:15px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#modal .nc-row .nc-t small{display:block;margin-top:2px;font-size:12px;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#modal select.nc-in{-webkit-appearance:menulist;appearance:auto}
+#modal .nc-add{flex:none;width:32px;height:32px;padding:0;border:0;border-radius:50%;background:var(--gray);color:var(--ink);font-size:18px;line-height:1}
+#modal .nc-add:disabled{opacity:.5}
+</style>
 <style id="tarot-css">
 #tarotPage{position:fixed;inset:0;z-index:35;height:var(--H,100%);background:var(--bg);color:var(--ink);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top);-webkit-user-select:none;user-select:none}
 #tarotPage [hidden],#tarotPage[hidden]{display:none!important}
