@@ -3755,6 +3755,22 @@ async function ncmCall(path,params,noAuth){
     throw Error(e&&e.name==='AbortError'?'连接超时':'连接失败：请检查 API 地址、是否为 https，以及服务是否允许跨域');
   }finally{clearTimeout(tm)}
 }
+/* 网易云二维码接口按官方示例使用 GET，并且每次请求都附带时间戳；不要复用普通 POST 请求。 */
+async function ncmQrCall(path,params={}){
+  const base=ncmBase();if(!base)throw Error('请先填写 API 地址');
+  const q=new URLSearchParams();
+  Object.entries(params||{}).forEach(([k,v])=>{if(v!==undefined&&v!==null)q.set(k,String(v))});
+  q.set('timestamp',String(Date.now()));
+  const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),15000);
+  try{
+    const r=await fetch(base+path+'?'+q.toString(),{method:'GET',cache:'no-store',credentials:'omit',headers:{'Accept':'application/json'},signal:ac.signal});
+    let j;try{j=await r.json()}catch(_){throw Error('二维码接口返回异常（HTTP '+r.status+'）')}
+    if(!r.ok)throw Error('二维码接口请求失败（HTTP '+r.status+'）');
+    return j;
+  }catch(e){if(e&&e.name==='AbortError')throw Error('二维码接口响应超时，请稍后重试');throw e}
+  finally{clearTimeout(tm)}
+}
+
 const https=u=>location.protocol==='https:'?String(u||'').replace(/^http:\/\//i,'https://'):String(u||'');
 /* 播放时现取地址（链接会过期）；拿不到就退回网易云公开外链 */
 async function ncmSongUrl(id){
@@ -3855,7 +3871,7 @@ function ncmDlg(){
       if(!/^https?:\/\//i.test(v)){toast('地址要以 https:// 开头');return}
       const old=G.ncm.api;G.ncm.api=v;
       try{
-        const k=await ncmCall('/login/qr/key',{},true);
+        const k=await ncmQrCall('/login/qr/key');
         if(!((k.data&&k.data.unikey)||k.unikey))throw Error('这个地址不像是网易云 API 服务');
         if(old!==v){G.ncm.profile=null;NCM.ck='';NCM.ckOk=true;kv.set('ncm_ck','')}
         save();toast('连接成功');home();
@@ -3870,28 +3886,29 @@ function ncmDlg(){
     let stopped=false;
     b.append(img,st,dbg,btn('返回',()=>{stopped=true;home()}));
     try{
-      const k=await ncmCall('/login/qr/key',{},true);
+      const k=await ncmQrCall('/login/qr/key');
       const key=(k.data&&k.data.unikey)||k.unikey;if(!key)throw Error('获取登录 key 失败');
-      const c=await ncmCall('/login/qr/create',{key,qrimg:'true'},true);
-      const qi=c.data&&c.data.qrimg;if(!qi)throw Error('生成二维码失败');
+      const c=await ncmQrCall('/login/qr/create',{key,qrimg:'true',platform:'web',ua:'pc'});
+      const qi=(c.data&&c.data.qrimg)||c.qrimg;if(!qi)throw Error('API 未返回二维码图片，请检查 /login/qr/create 接口');
       img.src=qi;st.textContent='用网易云音乐 App 扫描二维码';
       let fails=0;
       for(;;){
-        await new Promise(r=>setTimeout(r,2000));
+        await new Promise(r=>setTimeout(r,3000));
         if(stopped||!alive())return;
         let r;
         try{
-          r=await ncmCall('/login/qr/check',{key},true);
-          if(r&&r.code===502)r=await ncmCall('/login/qr/check',{key,noCookie:'true'},true);
+          r=await ncmQrCall('/login/qr/check',{key,ua:'pc'});
+          if(r&&r.code===502)r=await ncmQrCall('/login/qr/check',{key,noCookie:'true',ua:'pc'});
           fails=0;
         }catch(e){dbg.textContent=e.message;if(++fails>=4)throw e;continue}
         if(stopped||!alive())return;
         dbg.textContent='状态码 '+r.code+(r.message?' · '+r.message:'');
-        if(r.code===800){st.textContent='二维码已过期';b.append(btn('重新获取',qr,true));return}
-        if(r.code===802)st.textContent='已扫码，请在手机上点确认';
+        if(r.code===800){st.textContent='二维码已过期，正在重新获取…';setTimeout(()=>{if(alive()&&!stopped)qr()},350);return}
+        if(r.code===802)st.textContent='已扫码，请在网易云音乐 App 内点击确认';
+        else if(r.code===801)st.textContent='等待使用网易云音乐 App 扫码…';
         else if(r.code!==801&&r.code!==803)st.textContent='网易云返回了未知状态，请截图给开发者';
         if(r.code===803){
-          const cookie=r.cookie||r.cookies||(r.data&&(r.data.cookie||r.data.cookies));
+          const cookie=r.cookie||r.cookies||(r.data&&(r.data.cookie||r.data.cookies))||(r.data&&r.data.data&&(r.data.data.cookie||r.data.data.cookies));
           if(!cookie)throw Error('网易云已确认扫码，但 API 没有返回登录凭证。请检查 API 服务版本');
           NCM.ck=typeof cookie==='string'?cookie:(Array.isArray(cookie)?cookie.join('; '):(cookie&&typeof cookie==='object'?Object.entries(cookie).map(([k,v])=>k+'='+v).join('; '):String(cookie||'')));NCM.ckOk=true;
           await kv.set('ncm_ck',NCM.ck);NPROFILE.restoreTried=true;NPROFILE.restoring=true;NPROFILE.restoreError='';NPROFILE.profileTried=false;NPROFILE.detail=NPROFILE.level=NPROFILE.sub=NPROFILE.record=null;
