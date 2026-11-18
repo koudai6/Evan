@@ -3349,20 +3349,53 @@ document.body.append(lp,mn);
 /* 一起听新增：个人主页与字卡聊天 */
 const ltNav=document.createElement('div');ltNav.className='lt-nav';ltNav.innerHTML='<button data-v="play" class="on">正在播放</button><button data-v="profile">我的主页</button><button data-v="chat">一起聊</button>';
 lp.insertBefore(ltNav,lp.querySelector('.lt-top').nextSibling);
-const ltProfile=document.createElement('section');ltProfile.className='lt-extra lt-profile';ltProfile.innerHTML='<div class="lt-extra-head"><button data-back>‹ 返回播放</button><b>我的网易云主页</b><button data-edit>编辑</button></div><div class="lt-profile-hero"><div class="lt-profile-av"></div><h2 class="lt-profile-name">我的音乐主页</h2><p class="lt-profile-sub">听歌是一种生活方式</p><div class="lt-profile-stats"><span><b>—</b>关注</span><span><b>—</b>粉丝</span><span><b>—</b>听歌</span></div></div><div class="lt-profile-section"><b>我的歌单</b><div class="lt-profile-lists"></div><button class="lt-profile-open">查看网易云歌单　›</button></div>';
+const ltProfile=document.createElement('section');ltProfile.className='lt-extra lt-profile';ltProfile.innerHTML='<div class="lt-extra-head"><button data-back>‹ 返回播放</button><b>我的网易云主页</b><button data-edit>账号</button></div><div class="lt-profile-banner"><div class="lt-profile-banner-shade"></div></div><div class="lt-profile-hero"><div class="lt-profile-av"></div><h2 class="lt-profile-name">我的音乐主页</h2><p class="lt-profile-sub">听歌是一种生活方式</p><div class="lt-profile-badges"></div><div class="lt-profile-stats"><span><b>—</b>关注</span><span><b>—</b>粉丝</span><span><b>—</b>等级</span></div></div><div class="lt-profile-section"><b>个人资料</b><div class="lt-profile-info"></div></div><div class="lt-profile-section"><b>听歌排行</b><div class="lt-profile-ranking"></div></div><div class="lt-profile-section"><b>创建的歌单</b><div class="lt-profile-created lt-profile-lists"></div></div><div class="lt-profile-section"><b>收藏的歌单</b><div class="lt-profile-collected lt-profile-lists"></div></div><div class="lt-profile-section"><button class="lt-profile-open">打开网易云歌单管理　›</button></div>';
 const ltChat=document.createElement('section');ltChat.className='lt-extra lt-chat';ltChat.innerHTML='<div class="lt-extra-head"><button data-back>‹ 返回播放</button><b>一起听 · 聊天</b><span></span></div><div class="lt-chat-now"></div><div class="lt-chat-feed"></div><div class="lt-chat-compose"><button class="lt-chat-card">字卡</button><input placeholder="说点什么…" maxlength="500"><button class="lt-chat-send">发送</button></div>';
 lp.append(ltProfile,ltChat);
 function ltView(v){lp.dataset.view=v;ltNav.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));if(v==='profile')ltProfilePaint();if(v==='chat')ltChatPaint()}
 ltNav.addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b)ltView(b.dataset.v)});
 [ltProfile,ltChat].forEach(x=>x.querySelector('[data-back]').onclick=()=>ltView('play'));
+const NPROFILE={uid:null,detail:null,level:null,sub:null,record:null,loading:false,error:''};
+async function ltProfileLoad(force=false){
+ const n=ncmFix(),p=n.profile||{};if(!p.uid)return;
+ const uid=String(p.uid);if(NPROFILE.loading)return;
+ if(!force&&NPROFILE.uid===uid&&NPROFILE.detail&&NPROFILE.sub&&NPROFILE.record)return;
+ NPROFILE.uid=uid;NPROFILE.loading=true;NPROFILE.error='';
+ const tasks=await Promise.allSettled([
+  ncmCall('/user/detail',{uid}),
+  ncmCall('/user/level',{}),
+  ncmCall('/user/subcount',{}),
+  ncmCall('/user/record',{uid,type:'1'})
+ ]);
+ const val=i=>tasks[i].status==='fulfilled'?tasks[i].value:null;
+ NPROFILE.detail=val(0);NPROFILE.level=val(1);NPROFILE.sub=val(2);NPROFILE.record=val(3);
+ const failed=tasks.filter(x=>x.status==='rejected').length;
+ NPROFILE.error=failed===4?'个人资料接口暂时不可用，请检查网易云 API 服务版本或登录状态':failed?'部分资料暂时无法读取，其余内容仍可显示':'';
+ const d=NPROFILE.detail&&NPROFILE.detail.profile;
+ if(d){n.profile={...p,uid,name:d.nickname||p.name,nickname:d.nickname||p.nickname,avatar:https(d.avatarUrl||p.avatar),signature:d.signature||'',background:https(d.backgroundUrl||d.backgroundUrl)};save();}
+ NPROFILE.loading=false;if(lp.dataset.view==='profile')ltProfilePaint();
+}
 function ltProfilePaint(){
- const n=ncmFix(),p=n.profile||{},hero=ltProfile.querySelector('.lt-profile-hero'),av=ltProfile.querySelector('.lt-profile-av');
- av.innerHTML=p.avatar?'<img src="'+p.avatar+'">':'♫';ltProfile.querySelector('.lt-profile-name').textContent=p.nickname||p.name||'我的网易云主页';
- ltProfile.querySelector('.lt-profile-sub').textContent=p.signature||'记录喜欢的音乐与日常';
- const lists=ltProfile.querySelector('.lt-profile-lists');lists.innerHTML='';
- const data=NP.lists||[];
- if(data.length){data.slice(0,4).forEach(x=>{const d=document.createElement('div');d.className='lt-profile-list';d.innerHTML='<span class="lt-profile-cover">♫</span><span><b></b><small></small></span>';d.querySelector('b').textContent=x.name||'我的歌单';d.querySelector('small').textContent=(x.trackCount||0)+' 首歌曲';lists.append(d)})}
- else lists.innerHTML='<p class="lt-profile-empty">'+(p.uid?'歌单尚未加载，点击下方查看':'连接网易云并登录后，这里会显示你的个人资料和歌单')+'</p>';
+ const n=ncmFix(),p=n.profile||{},q=ltProfile.querySelector.bind(ltProfile);
+ const av=q('.lt-profile-av'),lists=q('.lt-profile-created'),collected=q('.lt-profile-collected');
+ if(ncmBase()&&!p.uid){q('.lt-profile-name').textContent='尚未连接网易云';q('.lt-profile-sub').textContent='连接 API 并扫码登录后，显示完整个人主页';q('.lt-profile-info').textContent='';q('.lt-profile-ranking').textContent='';q('.lt-profile-created').innerHTML='<p class="lt-profile-empty">请先登录网易云账号</p>';q('.lt-profile-collected').innerHTML='';return;}
+ if(!p.uid){q('.lt-profile-name').textContent='连接网易云后查看';q('.lt-profile-created').innerHTML='<p class="lt-profile-empty">尚未设置网易云 API</p>';return;}
+ if(NP.uid!==String(p.uid)){NP.uid=String(p.uid);NP.lists=null;}
+ if(!NP.lists&&!NP.loading)npLists();
+ if(!NPROFILE.detail&&!NPROFILE.loading)ltProfileLoad();
+ const d=NPROFILE.detail&&NPROFILE.detail.profile||{},lv=NPROFILE.level||{},sub=NPROFILE.sub||{},record=NPROFILE.record||{};
+ av.innerHTML='';if(p.avatar||d.avatarUrl){const im=document.createElement('img');im.src=https(d.avatarUrl||p.avatar);im.alt='网易云头像';av.append(im)}else av.textContent='♫';
+ q('.lt-profile-name').textContent=d.nickname||p.nickname||p.name||'网易云用户';q('.lt-profile-sub').textContent=d.signature||p.signature||'这个人很神秘，还没有填写简介';
+ const banner=q('.lt-profile-banner');banner.style.backgroundImage=d.backgroundUrl?'linear-gradient(180deg,rgba(0,0,0,.08),rgba(18,18,20,.92)),url("'+https(d.backgroundUrl)+'")':'';
+ q('.lt-profile-badges').innerHTML='';const badges=[];if(lv.data&&lv.data.level)badges.push('Lv.'+lv.data.level);if(d.vipType)badges.push(d.vipType===11?'黑胶 VIP':'VIP');if(d.gender===1)badges.push('男');else if(d.gender===2)badges.push('女');badges.forEach(t=>{const b=document.createElement('span');b.textContent=t;q('.lt-profile-badges').append(b)});
+ const st=q('.lt-profile-stats');st.innerHTML='';[[d.follows??'—','关注'],[d.followeds??'—','粉丝'],[lv.data&&lv.data.level?'Lv.'+lv.data.level:'—','等级']].forEach(a=>{const x=document.createElement('span'),b=document.createElement('b');b.textContent=a[0];x.append(b,document.createTextNode(a[1]));st.append(x)});
+ const info=q('.lt-profile-info');info.innerHTML='';const infos=[['用户 ID',p.uid],['性别',d.gender===1?'男':d.gender===2?'女':'未公开'],['生日',d.birthday?new Date(Number(d.birthday)).toLocaleDateString():'未公开'],['地区',[d.provinceName,d.cityName].filter(Boolean).join(' · ')||'未公开'],['创建歌单',sub.createdPlaylistCount??'—'],['收藏歌单',sub.subPlaylistCount??'—']];infos.forEach(([k,v])=>{const x=document.createElement('div');x.innerHTML='<span></span><b></b>';x.children[0].textContent=k;x.children[1].textContent=String(v);info.append(x)});
+ const rank=q('.lt-profile-ranking');rank.innerHTML='';const songs=record.weekData||record.allData||[];if(songs.length){songs.slice(0,10).forEach((it,i)=>{const song=it.song||{},x=document.createElement('div');x.className='lt-profile-rank';const name=document.createElement('b'),artist=document.createElement('span'),count=document.createElement('small');name.textContent=(i+1)+'. '+(song.name||'未知歌曲');artist.textContent=(song.ar||[]).map(a=>a.name).join(' / ');count.textContent='听 '+(it.playCount||0)+' 次';x.append(name,artist,count);rank.append(x)})}else rank.innerHTML='<p class="lt-profile-empty">'+(NPROFILE.loading?'正在读取听歌排行…':'暂无可显示的听歌排行（可能是 API 未提供或账号记录不可见）')+'</p>';
+ const all=NP.lists||[];lists.innerHTML='';collected.innerHTML='';const own=all.filter(x=>String((x.creator&&x.creator.userId)||'')===String(p.uid));const saved=all.filter(x=>String((x.creator&&x.creator.userId)||'')!==String(p.uid));
+ const addList=(host,x)=>{const row=document.createElement('button');row.type='button';row.className='lt-profile-list';const cover=document.createElement('img');cover.className='lt-profile-cover';cover.src=https(x.coverImgUrl||'');cover.alt='';const meta=document.createElement('span'),name=document.createElement('b'),count=document.createElement('small');name.textContent=x.name||'未命名歌单';count.textContent=(x.trackCount||0)+' 首歌曲';meta.append(name,count);row.append(cover,meta);row.onclick=()=>{ltView('play');openSheet('n');npOpen(x)};host.append(row)};
+ if(NP.loading&&!all.length){lists.innerHTML='<p class="lt-profile-empty">正在加载歌单…</p>'}else if(own.length)own.forEach(x=>addList(lists,x));else lists.innerHTML='<p class="lt-profile-empty">暂无创建的歌单</p>';
+ if(saved.length)saved.forEach(x=>addList(collected,x));else collected.innerHTML='<p class="lt-profile-empty">暂无收藏的歌单</p>';
+ if(NPROFILE.error){const er=document.createElement('p');er.className='lt-profile-empty';er.textContent=NPROFILE.error;info.append(er)}
 }
 ltProfile.querySelector('.lt-profile-open').onclick=()=>{ltView('play');openSheet('n')};
 ltProfile.querySelector('[data-edit]').onclick=()=>{ltView('play');ncmDlg()};
@@ -3587,7 +3620,7 @@ async function npLists(){
   NP.loading=true;NP.err='';sheetDraw();
   try{const r=await ncmCall('/user/playlist',{uid:String(pf.uid),limit:'100'});NP.lists=r.playlist||[];if(!NP.lists.length&&r.code&&r.code!==200)NP.err='读取失败（'+r.code+'）'}
   catch(e){NP.err=npMsg(e,'读取失败')}
-  NP.loading=false;sheetDraw();
+  NP.loading=false;sheetDraw();if(lp.dataset.view==='profile')ltProfilePaint();
 }
 async function npOpen(p){
   const my=++NP.seq;NP.view='tracks';NP.cur=p;NP.tracks=null;NP.err='';NP.loading=true;sheetDraw();
@@ -3683,7 +3716,7 @@ function moreDlg(){
 
 setInterval(()=>{if(lt.on){paintListenTime()}},1000);
 /* ========== 网易云（第三方 API · 扫码登录 · 歌单/搜索 → 一起听） ========== */
-G.ncm={api:'',level:'standard',profile:null};
+if(!G.ncm||typeof G.ncm!=='object')G.ncm={api:'',level:'standard',profile:null};
 const NCM={ck:'',ckOk:false};
 const ncmFix=()=>{if(!G.ncm||typeof G.ncm!=='object')G.ncm={api:'',level:'standard',profile:null};return G.ncm};
 const ncmBase=()=>String(ncmFix().api||'').trim().replace(/\/+$/,'');
@@ -3736,6 +3769,13 @@ async function ncmProfile(){
   if(!pf)return null;
   G.ncm.profile={uid:pf.userId,name:pf.nickname||'已登录',avatar:https(pf.avatarUrl)};save();
   return G.ncm.profile;
+}
+async function ncmEnsureProfile(){
+  ncmFix();
+  if(G.ncm.profile&&G.ncm.profile.uid)return G.ncm.profile;
+  const ck=await ncmCk();if(!ck)throw Error('尚未登录网易云，请先扫码登录');
+  const pf=await ncmProfile();if(!pf)throw Error('登录凭证已失效，请重新扫码登录');
+  return pf;
 }
 function ncmDlg(){
   ncmFix();
@@ -5013,5 +5053,16 @@ html.cs-ref #chat .r.rf.theirs>.ts{order:2!important}
 .lt-chat-compose input{flex:1;min-width:0;border:0;outline:0;border-radius:20px;background:#333338;color:#fff;padding:11px 14px;font-size:14px}
 .lt-chat-compose button{border:0;border-radius:18px;padding:9px 12px;background:#eee;color:#171717;font-size:12px}
 .lt-chat-compose .lt-chat-card{background:#39393e;color:#fff;border:1px solid #555}
+
+.lt-profile-banner{height:142px;flex:none;background:linear-gradient(135deg,#444,#171719);background-size:cover;background-position:center;position:relative}
+.lt-profile-hero{position:relative;margin-top:-42px;padding:0 18px 18px;text-align:left;background:linear-gradient(180deg,transparent,rgba(18,18,20,.35))}
+.lt-profile-av{width:78px;height:78px;margin:0;border:3px solid #222;box-shadow:0 5px 18px #0008}
+.lt-profile-name{font-size:21px;margin:10px 0 4px}.lt-profile-sub{line-height:1.5;max-width:95%}
+.lt-profile-badges{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}.lt-profile-badges span{font-size:10px;padding:4px 8px;border-radius:12px;background:#343439;color:#ddd}
+.lt-profile-stats{justify-content:flex-start;gap:30px;margin-top:15px}.lt-profile-stats span{display:flex;align-items:baseline;gap:5px}
+.lt-profile-info{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.lt-profile-info>div{display:grid;gap:4px;padding:10px;border-radius:10px;background:#29292e;min-width:0}.lt-profile-info span{font-size:10px;color:#999}.lt-profile-info b{font-size:12px;overflow-wrap:anywhere}
+.lt-profile-ranking{display:grid;gap:8px;margin-top:12px}.lt-profile-rank{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 8px;padding:9px 10px;border-radius:10px;background:#29292e}.lt-profile-rank b{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lt-profile-rank span{font-size:10px;color:#999;grid-column:1}.lt-profile-rank small{font-size:10px;color:#aaa;grid-column:2;grid-row:1/3;align-self:center}
+.lt-profile-list{width:100%;border:0;text-align:left;background:transparent;color:#fff;padding:5px 0;cursor:pointer}.lt-profile-cover{height:48px;object-fit:cover;flex:none}.lt-profile-open{margin-top:8px}
+
 @media(max-height:700px){.lt-extra{inset:96px 0 0}.lt-profile-hero{padding:16px}.lt-profile-av{width:65px;height:65px}}
 </style>
