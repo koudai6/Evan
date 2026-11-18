@@ -3441,8 +3441,11 @@ async function ncmCall(path,params,noAuth){
   const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),15000);
   try{
     const r=await fetch(base+path,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body.toString(),signal:ac.signal});
-    return await r.json();
+    let j;
+    try{j=await r.json()}catch(_){const x=Error('服务返回异常（HTTP '+r.status+'）');x._api=1;throw x}
+    return j;
   }catch(e){
+    if(e&&e._api)throw e;
     throw Error(e&&e.name==='AbortError'?'连接超时':'连接失败：请检查 API 地址、是否为 https，以及服务是否允许跨域');
   }finally{clearTimeout(tm)}
 }
@@ -3527,9 +3530,9 @@ function ncmDlg(){
   /* ---- 扫码登录 ---- */
   async function qr(){
     const b=B();b.innerHTML='';
-    const img=h('img','nc-qr'),st=h('div','hint','正在获取二维码…');st.style.textAlign='center';
+    const img=h('img','nc-qr'),st=h('div','hint','正在获取二维码…'),dbg=h('div','hint','');st.style.textAlign='center';dbg.style.textAlign='center';dbg.style.opacity='.6';
     let stopped=false;
-    b.append(img,st,btn('返回',()=>{stopped=true;home()}));
+    b.append(img,st,dbg,btn('返回',()=>{stopped=true;home()}));
     try{
       const k=await ncmCall('/login/qr/key',{},true);
       const key=(k.data&&k.data.unikey)||k.unikey;if(!key)throw Error('获取登录 key 失败');
@@ -3541,10 +3544,12 @@ function ncmDlg(){
         await new Promise(r=>setTimeout(r,2000));
         if(stopped||!alive())return;
         let r;
-        try{r=await ncmCall('/login/qr/check',{key},true);fails=0}catch(e){if(++fails>=3)throw e;continue}
+        try{r=await ncmCall('/login/qr/check',{key,noCookie:'true'},true);fails=0}catch(e){dbg.textContent=e.message;if(++fails>=4)throw e;continue}
         if(stopped||!alive())return;
+        dbg.textContent='状态码 '+r.code+(r.message?' · '+r.message:'');
         if(r.code===800){st.textContent='二维码已过期';b.append(btn('重新获取',qr,true));return}
         if(r.code===802)st.textContent='已扫码，请在手机上点确认';
+        else if(r.code!==801&&r.code!==803)st.textContent='网易云返回了未知状态，请截图给开发者';
         if(r.code===803){
           if(!r.cookie)throw Error('没有拿到登录凭证');
           NCM.ck=r.cookie;NCM.ckOk=true;await kv.set('ncm_ck',r.cookie);
