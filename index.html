@@ -1144,6 +1144,46 @@ html.cs-ref #chat .r.rf>.m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots){f
 #cardsPage .cp-actions button,#cardsPage #cpBar button,#cardsPage .mini{background:#f5f5f5!important;color:#111!important;border-color:#c9c9c9!important}
 #cardsPage #cpBar{background:#fff!important;border-top:1px solid #d6d6d6!important}
 @media(prefers-color-scheme:dark){#cardsPage{background:#000!important;color:#f5f5f5!important}#cardsPage .cp-head,#cardsPage #cpBar{background:#000!important;color:#f5f5f5!important;border-color:#444!important}#cardsPage .cp-head button,#cardsPage #cpSearch,#cardsPage .chip,#cardsPage .cp-actions button,#cardsPage #cpBar button,#cardsPage .mini{background:#171717!important;color:#f5f5f5!important;border-color:#555!important}#cardsPage .cp-title{color:#f5f5f5!important}#cardsPage .chip.on{background:#f5f5f5!important;color:#000!important;border-color:#f5f5f5!important}}
+
+/* 网易云式一起听细节优化：取消三段导航按钮，内容页真正铺满屏幕 */
+.lt-nav{display:none!important}
+.lt-t,.lt-a{cursor:pointer}
+.lt-extra{inset:0!important;padding-top:calc(env(safe-area-inset-top) + 4px);padding-bottom:env(safe-area-inset-bottom);background:rgba(18,18,20,.97)}
+.lt-extra-head{height:52px;min-height:52px;padding:0 18px;border-bottom:1px solid rgba(255,255,255,.08)}
+.lt-extra-head b{font-size:16px;font-weight:650}
+.lt-profile{overscroll-behavior:contain;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+.lt-profile-banner{height:clamp(170px,28vh,250px)}
+.lt-profile-hero{margin-top:-48px;padding:0 22px 22px}
+.lt-profile-av{width:88px;height:88px}
+.lt-profile-name{font-size:24px}
+.lt-profile-section{padding:20px 22px}
+.lt-profile-info>div,.lt-profile-rank{border-radius:14px;padding:13px;background:rgba(255,255,255,.075)}
+.lt-chat{min-height:0;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+.lt-chat-now{padding:12px 18px;font-size:12px;background:rgba(255,255,255,.045);text-align:center}
+.lt-chat-feed{padding:18px 16px;gap:16px;overscroll-behavior:contain}
+.lt-chat-msg{display:flex;align-items:flex-start;gap:9px;max-width:100%}
+.lt-chat-msg.mine{justify-content:flex-end}
+.lt-chat-av{width:36px;height:36px;flex:none;border-radius:50%;overflow:hidden;background:#38383d;border:1px solid rgba(255,255,255,.16)}
+.lt-chat-av img{width:100%;height:100%;object-fit:cover}
+.lt-chat-body{display:flex;flex-direction:column;align-items:flex-start;gap:5px;max-width:calc(100% - 50px);min-width:0}
+.lt-chat-msg.mine .lt-chat-body{align-items:flex-end}
+.lt-chat-bubble{max-width:100%;padding:11px 14px;border-radius:18px;background:#38383d;color:#fff;font-size:15px;line-height:1.5}
+.lt-chat-msg.theirs .lt-chat-bubble{border-top-left-radius:5px}
+.lt-chat-msg.mine .lt-chat-bubble{background:#eee;color:#171717;border-top-right-radius:5px;border-bottom-right-radius:18px}
+.lt-chat-body time{font-size:10px;color:rgba(255,255,255,.38);padding:0 4px}
+.lt-chat-bubble img{max-width:min(58vw,230px);max-height:260px;border-radius:12px}
+.lt-chat-compose{gap:9px;padding:12px 14px calc(12px + env(safe-area-inset-bottom));background:rgba(20,20,22,.98);border-top:1px solid rgba(255,255,255,.08)}
+.lt-chat-compose input{height:42px;border-radius:22px;background:#303035;padding:0 16px;font-size:15px}
+.lt-chat-compose button{height:38px;padding:0 15px;border-radius:20px;font-size:13px;font-weight:600}
+@media(max-height:700px){.lt-extra{inset:0!important}.lt-profile-banner{height:150px}.lt-profile-hero{padding-bottom:12px}}
+
+
+.lt-tog{gap:12px;padding:7px 18px 7px 7px;min-height:78px;border-radius:42px;background:rgba(255,255,255,.16)}
+.lt-av{width:64px;height:64px;border-width:2.5px}
+.lt-av+.lt-av{margin-left:-17px}
+.lt-who{font-size:15px;max-width:52vw}
+.lt-time{font-size:12px;margin-top:3px}
+
 </style>
 </head>
 <body>
@@ -3347,13 +3387,17 @@ const mn=h('div');mn.id='ltMini';mn.hidden=true;mn.innerHTML='<span class="lm-cv
 
 document.body.append(lp,mn);
 /* 一起听新增：个人主页与字卡聊天 */
-const ltNav=document.createElement('div');ltNav.className='lt-nav';ltNav.innerHTML='<button data-v="play" class="on">正在播放</button><button data-v="profile">我的主页</button><button data-v="chat">一起聊</button>';
-lp.insertBefore(ltNav,lp.querySelector('.lt-top').nextSibling);
+/* 网易云式无标签导航：点击歌曲标题进入主页，点击双人一起听卡片进入聊天 */
+const ltNav=document.createElement('div');ltNav.className='lt-nav';ltNav.hidden=true;
 const ltProfile=document.createElement('section');ltProfile.className='lt-extra lt-profile';ltProfile.innerHTML='<div class="lt-extra-head"><button data-back>‹ 返回播放</button><b>我的网易云主页</b><button data-edit>账号</button></div><div class="lt-profile-banner"><div class="lt-profile-banner-shade"></div></div><div class="lt-profile-hero"><div class="lt-profile-av"></div><h2 class="lt-profile-name">我的音乐主页</h2><p class="lt-profile-sub">听歌是一种生活方式</p><div class="lt-profile-badges"></div><div class="lt-profile-stats"><span><b>—</b>关注</span><span><b>—</b>粉丝</span><span><b>—</b>等级</span></div></div><div class="lt-profile-section"><b>个人资料</b><div class="lt-profile-info"></div></div><div class="lt-profile-section"><b>听歌排行</b><div class="lt-profile-ranking"></div></div><div class="lt-profile-section"><b>创建的歌单</b><div class="lt-profile-created lt-profile-lists"></div></div><div class="lt-profile-section"><b>收藏的歌单</b><div class="lt-profile-collected lt-profile-lists"></div></div><div class="lt-profile-section"><button class="lt-profile-open">打开网易云歌单管理　›</button></div>';
-const ltChat=document.createElement('section');ltChat.className='lt-extra lt-chat';ltChat.innerHTML='<div class="lt-extra-head"><button data-back>‹ 返回播放</button><b>一起听 · 聊天</b><span></span></div><div class="lt-chat-now"></div><div class="lt-chat-feed"></div><div class="lt-chat-compose"><button class="lt-chat-card">字卡</button><input placeholder="说点什么…" maxlength="500"><button class="lt-chat-send">发送</button></div>';
+const ltChat=document.createElement('section');ltChat.className='lt-extra lt-chat';ltChat.innerHTML='<div class="lt-extra-head"><button data-back>‹ 返回播放</button><b>一起听</b><span></span></div><div class="lt-chat-now"></div><div class="lt-chat-feed"></div><div class="lt-chat-compose"><button class="lt-chat-card">字卡</button><input placeholder="说点什么…" maxlength="500"><button class="lt-chat-send">发送</button></div>';
 lp.append(ltProfile,ltChat);
 function ltView(v){lp.dataset.view=v;ltNav.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));if(v==='profile')ltProfilePaint();if(v==='chat')ltChatPaint()}
 ltNav.addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b)ltView(b.dataset.v)});
+$('ltT').addEventListener('click',()=>ltView('profile'));
+$('ltAr').addEventListener('click',()=>ltView('profile'));
+$('ltWho').parentElement.parentElement.addEventListener('click',()=>ltView('chat'));
+$('ltWho').parentElement.parentElement.style.cursor='pointer';
 [ltProfile,ltChat].forEach(x=>x.querySelector('[data-back]').onclick=()=>ltView('play'));
 const NPROFILE={uid:null,detail:null,level:null,sub:null,record:null,loading:false,error:'',restoring:false,restoreTried:false,restoreError:''};
 async function ltProfileLoad(force=false){
@@ -3417,7 +3461,15 @@ function ltChatPaint(){
  const ct=lt.ct||cur(),feed=ltChat.querySelector('.lt-chat-feed'),s=sg();
  ltChat.querySelector('.lt-chat-now').textContent=(s?s.title+' · '+(s.artist||''):'还没有正在播放的歌曲')+'　正在和 '+(ct.profile.name||'对方')+' 一起听';
  feed.innerHTML='';
- (ct.msgs||[]).slice(-80).forEach(m=>{const row=document.createElement('div');row.className='lt-chat-msg '+(m.mine?'mine':'theirs');const bubble=document.createElement('div');bubble.className='lt-chat-bubble';if(m.type==='image'&&m.src){const im=document.createElement('img');im.src=m.src;bubble.append(im)}else bubble.textContent=m.text||'';row.append(bubble);feed.append(row)});
+ (ct.msgs||[]).slice(-80).forEach(m=>{
+  const row=document.createElement('div');row.className='lt-chat-msg '+(m.mine?'mine':'theirs');
+  const av=document.createElement('div');av.className='lt-chat-av';fillAv(av,m.mine?(ct.profile.myAvatar||''):(ct.profile.avatar||''));
+  const body=document.createElement('div');body.className='lt-chat-body';
+  const bubble=document.createElement('div');bubble.className='lt-chat-bubble';
+  if(m.type==='image'&&m.src){const im=document.createElement('img');im.src=m.src;bubble.append(im)}else bubble.textContent=m.text||'';
+  const time=document.createElement('time');time.textContent=m.t?new Date(m.t).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}):'';
+  body.append(bubble,time);if(m.mine)row.append(body,av);else row.append(av,body);feed.append(row);
+ });
  feed.scrollTop=feed.scrollHeight;
 }
 function ltChatSend(text){
