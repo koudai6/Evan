@@ -3723,7 +3723,7 @@ setInterval(()=>{if(lt.on){paintListenTime()}},1000);
 if(!G.ncm||typeof G.ncm!=='object')G.ncm={api:'',level:'standard',profile:null};
 const NCM={ck:'',ckOk:false};
 const ncmFix=()=>{if(!G.ncm||typeof G.ncm!=='object')G.ncm={api:'',level:'standard',profile:null};return G.ncm};
-const ncmBase=()=>String(ncmFix().api||'').trim().replace(/\/+$/,'');
+const ncmBase=()=>String(ncmFix().api||'').trim().replace(/\/+$/,'').replace(/\/login\/qr\/key$/i,'').replace(/\/login\/qr\/create$/i,'').replace(/\/login\/qr\/check$/i,'').replace(/\/login\/status$/i,'').replace(/\/user\/account$/i,'').replace(/\/+$/,'');
 /* 登录凭证只放在本机 IndexedDB，不进聊天备份 */
 async function ncmCk(){if(!NCM.ckOk){NCM.ck=(await kv.get('ncm_ck'))||'';NCM.ckOk=true}return NCM.ck}
 async function ncmCall(path,params,noAuth){
