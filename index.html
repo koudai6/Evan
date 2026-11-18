@@ -3378,7 +3378,11 @@ async function ltProfileLoad(force=false){
 function ltProfilePaint(){
  const n=ncmFix(),p=n.profile||{},q=ltProfile.querySelector.bind(ltProfile);
  const av=q('.lt-profile-av'),lists=q('.lt-profile-created'),collected=q('.lt-profile-collected');
- if(ncmBase()&&!p.uid){q('.lt-profile-name').textContent='尚未连接网易云';q('.lt-profile-sub').textContent='连接 API 并扫码登录后，显示完整个人主页';q('.lt-profile-info').textContent='';q('.lt-profile-ranking').textContent='';q('.lt-profile-created').innerHTML='<p class="lt-profile-empty">请先登录网易云账号</p>';q('.lt-profile-collected').innerHTML='';return;}
+ if(ncmBase()&&!p.uid){
+  q('.lt-profile-name').textContent='正在恢复网易云登录状态…';q('.lt-profile-sub').textContent='正在验证本机保存的登录凭证';q('.lt-profile-info').textContent='';q('.lt-profile-ranking').textContent='';q('.lt-profile-created').innerHTML='<p class="lt-profile-empty">正在读取账号资料…</p>';q('.lt-profile-collected').innerHTML='';
+  if(!NPROFILE.restoring){NPROFILE.restoring=true;ncmCk().then(async ck=>{if(ck){try{await ncmProfile()}catch(e){}}NPROFILE.restoring=false;if(lp.dataset.view==='profile')ltProfilePaint();}).catch(()=>{NPROFILE.restoring=false})}
+  return;
+ }
  if(!p.uid){q('.lt-profile-name').textContent='连接网易云后查看';q('.lt-profile-created').innerHTML='<p class="lt-profile-empty">尚未设置网易云 API</p>';return;}
  if(NP.uid!==String(p.uid)){NP.uid=String(p.uid);NP.lists=null;}
  if(!NP.lists&&!NP.loading)npLists();
@@ -3764,10 +3768,23 @@ function ncmAdd(list){
   return fresh.length;
 }
 async function ncmProfile(){
-  const r=await ncmCall('/user/account',{});
-  const pf=r&&(r.profile||(r.data&&r.data.profile));
-  if(!pf)return null;
-  G.ncm.profile={uid:pf.userId,name:pf.nickname||'已登录',avatar:https(pf.avatarUrl)};save();
+  // 不同版本的网易云 API 返回结构略有差异，先查登录状态，再用账号接口兜底。
+  let results=[];
+  for(const path of ['/login/status','/user/account']){
+    try{results.push(await ncmCall(path,{}))}catch(e){results.push(null)}
+  }
+  let pf=null,uid=null;
+  for(const r of results){
+    if(!r)continue;
+    pf=pf||r.profile||(r.data&&r.data.profile)||(r.data&&r.data.account)||r.account;
+    uid=uid||(pf&&(pf.userId||pf.user_id||pf.id))||(r.data&&(r.data.account&&r.data.account.id||r.data.profile&&r.data.profile.userId));
+    if(pf&&uid)break;
+  }
+  if(!pf||!uid)return null;
+  G.ncm.profile={uid:String(uid),name:pf.nickname||pf.name||'已登录',nickname:pf.nickname||pf.name||'已登录',avatar:https(pf.avatarUrl||pf.avatar||''),signature:pf.signature||''};
+  save();
+  // 登录资料立即落盘，避免页面切换/刷新时丢失。
+  try{await kv.set('state',G)}catch(e){}
   return G.ncm.profile;
 }
 async function ncmEnsureProfile(){
@@ -3843,18 +3860,29 @@ function ncmDlg(){
         await new Promise(r=>setTimeout(r,2000));
         if(stopped||!alive())return;
         let r;
-        try{r=await ncmCall('/login/qr/check',{key,noCookie:'true'},true);fails=0}catch(e){dbg.textContent=e.message;if(++fails>=4)throw e;continue}
+        try{
+          r=await ncmCall('/login/qr/check',{key},true);
+          if(r&&r.code===502)r=await ncmCall('/login/qr/check',{key,noCookie:'true'},true);
+          fails=0;
+        }catch(e){dbg.textContent=e.message;if(++fails>=4)throw e;continue}
         if(stopped||!alive())return;
         dbg.textContent='状态码 '+r.code+(r.message?' · '+r.message:'');
         if(r.code===800){st.textContent='二维码已过期';b.append(btn('重新获取',qr,true));return}
         if(r.code===802)st.textContent='已扫码，请在手机上点确认';
         else if(r.code!==801&&r.code!==803)st.textContent='网易云返回了未知状态，请截图给开发者';
         if(r.code===803){
-          if(!r.cookie)throw Error('没有拿到登录凭证');
-          NCM.ck=r.cookie;NCM.ckOk=true;await kv.set('ncm_ck',r.cookie);
+          const cookie=r.cookie||r.cookies||(r.data&&(r.data.cookie||r.data.cookies));
+          if(!cookie)throw Error('网易云已确认扫码，但 API 没有返回登录凭证。请检查 API 服务版本');
+          NCM.ck=typeof cookie==='string'?cookie:JSON.stringify(cookie);NCM.ckOk=true;
+          await kv.set('ncm_ck',NCM.ck);
           const p=await ncmProfile();
-          if(!p){NCM.ck='';await kv.set('ncm_ck','');throw Error('登录成功但读取账号失败')}
-          toast('登录成功');home();return;
+          if(!p){
+            // 部分 API 的 account/status 接口短暂延迟，稍等后再验证一次。
+            await new Promise(r=>setTimeout(r,900));
+            const retry=await ncmProfile();
+            if(!retry)throw Error('扫码已确认，但无法读取账号资料。请检查 API 地址及服务日志');
+          }
+          toast('登录成功，账号资料已保存');home();return;
         }
       }
     }catch(e){if(alive()&&!stopped){st.textContent=e.message||'出错了';b.append(btn('重试',qr,true),btn('返回',home))}}
