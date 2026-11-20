@@ -3985,24 +3985,27 @@ function ncmDlg(){
   async function qr(){
     const b=B();b.innerHTML='';
     const img=h('img','nc-qr'),st=h('div','hint','正在获取二维码…'),dbg=h('div','hint','');st.style.textAlign='center';dbg.style.textAlign='center';dbg.style.opacity='.6';
-    let stopped=false;
+    let stopped=false,wake=null;
+    const onVis=()=>{if(!document.hidden&&wake)wake()};document.addEventListener('visibilitychange',onVis);window.addEventListener('focus',onVis);window.addEventListener('pageshow',onVis);
+    const done=()=>{document.removeEventListener('visibilitychange',onVis);window.removeEventListener('focus',onVis);window.removeEventListener('pageshow',onVis)};
     const tip=h('div','hint','二维码就显示在这台手机上？长按二维码保存图片，打开网易云 App →「扫一扫」→ 右上角相册，选这张图。');tip.style.textAlign='center';
-    b.append(img,st,tip,dbg,btn('返回',()=>{stopped=true;home()}));
+    b.append(img,st,tip,dbg,btn('我已在网易云确认，立即检测',()=>{if(wake)wake()},true),btn('返回',()=>{stopped=true;done();home()}));
     try{
-      const k=await ncmCall('/login/qr/key',{},true);
+      const rn=()=>1+Math.floor(Math.random()*254),ip='116.'+rn()+'.'+rn()+'.'+rn();/* 同一次扫码全程用同一个国内 IP，避免服务器换 IP 导致扫码状态不更新 */
+      const k=await ncmCall('/login/qr/key',{realIP:ip},true);
       const key=(k.data&&k.data.unikey)||k.unikey;if(!key)throw Error('获取登录 key 失败');
-      const c=await ncmCall('/login/qr/create',{key,qrimg:'true'},true);
+      const c=await ncmCall('/login/qr/create',{key,qrimg:'true',realIP:ip},true);
       const qi=c.data&&c.data.qrimg;if(!qi)throw Error('生成二维码失败');
       img.src=qi;st.textContent='用网易云音乐 App 扫描二维码';
       let fails=0;
       for(;;){
-        await new Promise(r=>setTimeout(r,2000));
-        if(stopped||!alive())return;
+        await new Promise(r=>{wake=r;setTimeout(r,2000)});wake=null;
+        if(stopped||!alive()){done();return}
         let r;
-        try{r=await ncmCall('/login/qr/check',{key,noCookie:'true'},true);fails=0}catch(e){dbg.textContent=e.message;if(++fails>=4)throw e;continue}
-        if(stopped||!alive())return;
+        try{r=await ncmCall('/login/qr/check',{key,noCookie:'true',realIP:ip},true);fails=0}catch(e){dbg.textContent=e.message+'（正在重试）';if(++fails>=20)throw e;continue}
+        if(stopped||!alive()){done();return}
         dbg.textContent='状态码 '+r.code+(r.message?' · '+r.message:'');
-        if(r.code===800){st.textContent='二维码已过期';b.append(btn('重新获取',qr,true));return}
+        if(r.code===800){done();st.textContent='二维码已过期';b.append(btn('重新获取',qr,true));return}
         if(r.code===801)st.textContent='等待扫码…';
         if(r.code===802)st.textContent='已扫码，请在手机上点确认';
         else if(r.code!==801&&r.code!==803)st.textContent='网易云返回了未知状态，请截图给开发者';
@@ -4011,10 +4014,10 @@ function ncmDlg(){
           NCM.ck=r.cookie;NCM.ckOk=true;await kv.set('ncm_ck',r.cookie);
           const p=await ncmProfile();
           if(!p){NCM.ck='';await kv.set('ncm_ck','');throw Error('登录成功但读取账号失败')}
-          toast('登录成功');home();return;
+          done();toast('登录成功');home();return;
         }
       }
-    }catch(e){if(alive()&&!stopped){st.textContent=e.message||'出错了';b.append(btn('重试',qr,true),btn('返回',home))}}
+    }catch(e){done();if(alive()&&!stopped){st.textContent=e.message||'出错了';b.append(btn('重试',qr,true),btn('返回',home))}}
   }
   /* ---- 歌曲列表（歌单内容 / 搜索结果共用） ---- */
   function songs(title,list,backFn){
