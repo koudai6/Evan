@@ -3890,6 +3890,7 @@ async function ncmCall(path,params,noAuth){
   Object.keys(params||{}).forEach(k=>body.set(k,params[k]));
   if(!noAuth){const ck=await ncmCk();if(ck)body.set('cookie',ck)}
   body.set('timestamp',String(Date.now()));
+  if(!body.has('randomCNIP')&&!body.has('realIP'))body.set('randomCNIP','true');
   const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),15000);
   try{
     const r=await fetch(base+path,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body.toString(),signal:ac.signal});
@@ -3985,7 +3986,8 @@ function ncmDlg(){
     const b=B();b.innerHTML='';
     const img=h('img','nc-qr'),st=h('div','hint','正在获取二维码…'),dbg=h('div','hint','');st.style.textAlign='center';dbg.style.textAlign='center';dbg.style.opacity='.6';
     let stopped=false;
-    b.append(img,st,dbg,btn('返回',()=>{stopped=true;home()}));
+    const tip=h('div','hint','二维码就显示在这台手机上？长按二维码保存图片，打开网易云 App →「扫一扫」→ 右上角相册，选这张图。');tip.style.textAlign='center';
+    b.append(img,st,tip,dbg,btn('返回',()=>{stopped=true;home()}));
     try{
       const k=await ncmCall('/login/qr/key',{},true);
       const key=(k.data&&k.data.unikey)||k.unikey;if(!key)throw Error('获取登录 key 失败');
@@ -4001,6 +4003,7 @@ function ncmDlg(){
         if(stopped||!alive())return;
         dbg.textContent='状态码 '+r.code+(r.message?' · '+r.message:'');
         if(r.code===800){st.textContent='二维码已过期';b.append(btn('重新获取',qr,true));return}
+        if(r.code===801)st.textContent='等待扫码…';
         if(r.code===802)st.textContent='已扫码，请在手机上点确认';
         else if(r.code!==801&&r.code!==803)st.textContent='网易云返回了未知状态，请截图给开发者';
         if(r.code===803){
