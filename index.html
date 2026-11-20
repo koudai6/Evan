@@ -1144,46 +1144,6 @@ html.cs-ref #chat .r.rf>.m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots){f
 #cardsPage .cp-actions button,#cardsPage #cpBar button,#cardsPage .mini{background:#f5f5f5!important;color:#111!important;border-color:#c9c9c9!important}
 #cardsPage #cpBar{background:#fff!important;border-top:1px solid #d6d6d6!important}
 @media(prefers-color-scheme:dark){#cardsPage{background:#000!important;color:#f5f5f5!important}#cardsPage .cp-head,#cardsPage #cpBar{background:#000!important;color:#f5f5f5!important;border-color:#444!important}#cardsPage .cp-head button,#cardsPage #cpSearch,#cardsPage .chip,#cardsPage .cp-actions button,#cardsPage #cpBar button,#cardsPage .mini{background:#171717!important;color:#f5f5f5!important;border-color:#555!important}#cardsPage .cp-title{color:#f5f5f5!important}#cardsPage .chip.on{background:#f5f5f5!important;color:#000!important;border-color:#f5f5f5!important}}
-
-/* 网易云式一起听细节优化：取消三段导航按钮，内容页真正铺满屏幕 */
-.lt-nav{display:none!important}
-.lt-t,.lt-a{cursor:pointer}
-.lt-extra{inset:0!important;padding-top:calc(env(safe-area-inset-top) + 4px);padding-bottom:env(safe-area-inset-bottom);background:rgba(18,18,20,.97)}
-.lt-extra-head{height:52px;min-height:52px;padding:0 18px;border-bottom:1px solid rgba(255,255,255,.08)}
-.lt-extra-head b{font-size:16px;font-weight:650}
-.lt-profile{overscroll-behavior:contain;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
-.lt-profile-banner{height:clamp(170px,28vh,250px)}
-.lt-profile-hero{margin-top:-48px;padding:0 22px 22px}
-.lt-profile-av{width:88px;height:88px}
-.lt-profile-name{font-size:24px}
-.lt-profile-section{padding:20px 22px}
-.lt-profile-info>div,.lt-profile-rank{border-radius:14px;padding:13px;background:rgba(255,255,255,.075)}
-.lt-chat{min-height:0;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
-.lt-chat-now{padding:12px 18px;font-size:12px;background:rgba(255,255,255,.045);text-align:center}
-.lt-chat-feed{padding:18px 16px;gap:16px;overscroll-behavior:contain}
-.lt-chat-msg{display:flex;align-items:flex-start;gap:9px;max-width:100%}
-.lt-chat-msg.mine{justify-content:flex-end}
-.lt-chat-av{width:36px;height:36px;flex:none;border-radius:50%;overflow:hidden;background:#38383d;border:1px solid rgba(255,255,255,.16)}
-.lt-chat-av img{width:100%;height:100%;object-fit:cover}
-.lt-chat-body{display:flex;flex-direction:column;align-items:flex-start;gap:5px;max-width:calc(100% - 50px);min-width:0}
-.lt-chat-msg.mine .lt-chat-body{align-items:flex-end}
-.lt-chat-bubble{max-width:100%;padding:11px 14px;border-radius:18px;background:#38383d;color:#fff;font-size:15px;line-height:1.5}
-.lt-chat-msg.theirs .lt-chat-bubble{border-top-left-radius:5px}
-.lt-chat-msg.mine .lt-chat-bubble{background:#eee;color:#171717;border-top-right-radius:5px;border-bottom-right-radius:18px}
-.lt-chat-body time{font-size:10px;color:rgba(255,255,255,.38);padding:0 4px}
-.lt-chat-bubble img{max-width:min(58vw,230px);max-height:260px;border-radius:12px}
-.lt-chat-compose{gap:9px;padding:12px 14px calc(12px + env(safe-area-inset-bottom));background:rgba(20,20,22,.98);border-top:1px solid rgba(255,255,255,.08)}
-.lt-chat-compose input{height:42px;border-radius:22px;background:#303035;padding:0 16px;font-size:15px}
-.lt-chat-compose button{height:38px;padding:0 15px;border-radius:20px;font-size:13px;font-weight:600}
-@media(max-height:700px){.lt-extra{inset:0!important}.lt-profile-banner{height:150px}.lt-profile-hero{padding-bottom:12px}}
-
-
-.lt-tog{gap:12px;padding:7px 18px 7px 7px;min-height:78px;border-radius:42px;background:rgba(255,255,255,.16)}
-.lt-av{width:64px;height:64px;border-width:2.5px}
-.lt-av+.lt-av{margin-left:-17px}
-.lt-who{font-size:15px;max-width:52vw}
-.lt-time{font-size:12px;margin-top:3px}
-
 </style>
 </head>
 <body>
@@ -1412,6 +1372,74 @@ html.cs-ref #chat .r.rf>.m:not(.pic):not(.pay):not(.emo):not(.poll):not(.dots){f
 #lt .lt-pl .ad:disabled{opacity:.5;color:var(--red)}
 #lt .lt-back{display:flex;align-items:center;gap:4px;padding:4px 0 6px;font-size:14px;color:rgba(255,255,255,.75)}
 .lt-back svg{width:18px;height:18px;transform:rotate(90deg)}
+#lt{--d:min(64vw,30vh,262px)}
+.lt-stage{position:relative}
+.lt-ly{width:100%;height:22px;margin-top:6px;font-size:14px;line-height:22px;text-align:center;color:rgba(255,255,255,.9);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;transition:opacity .2s}
+.lt-ly:empty{visibility:hidden}
+.lt-lyl{position:absolute;inset:0;z-index:2;display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;text-align:center;padding:36% 10px;-webkit-mask-image:linear-gradient(transparent,#000 16%,#000 84%,transparent);mask-image:linear-gradient(transparent,#000 16%,#000 84%,transparent);scrollbar-width:none}
+.lt-lyl::-webkit-scrollbar{display:none}
+#lt.lt-lyv .lt-lyl{display:block}
+#lt.lt-lyv .lt-dw{visibility:hidden}
+#lt.lt-lyv .lt-ly{visibility:hidden}
+.lt-lyl div{padding:8px 4px;font-size:16px;line-height:1.5;color:rgba(255,255,255,.5);transition:color .2s}
+.lt-lyl div.on{color:#fff;font-size:18px;font-weight:600}
+.lt-chat{width:100%;display:flex;flex-direction:column;gap:6px;max-height:104px;min-height:0;overflow-y:auto;padding:6px 0 2px;scrollbar-width:none;-webkit-mask-image:linear-gradient(transparent,#000 38%);mask-image:linear-gradient(transparent,#000 38%)}
+.lt-chat::-webkit-scrollbar{display:none}
+.lt-chat:empty{display:none}
+.lt-b{flex:none;max-width:76%;align-self:flex-start;padding:7px 12px;border-radius:16px 16px 16px 4px;background:rgba(255,255,255,.16);font-size:14px;line-height:1.4;word-break:break-word;-webkit-user-select:text;user-select:text}
+.lt-b.me{align-self:flex-end;border-radius:16px 16px 4px 16px;background:var(--red)}
+.lt-b.emo{background:none;padding:0;font-size:26px}
+.lt-b.img{padding:3px;background:rgba(255,255,255,.12)}
+.lt-b img{display:block;width:84px;max-height:110px;object-fit:cover;border-radius:12px}
+.lt-b.sys{align-self:center;max-width:90%;padding:2px 10px;background:none;font-size:11px;color:rgba(255,255,255,.5)}
+.lt-b.ty{display:flex;gap:4px;padding:10px 14px}
+.lt-b.ty i{width:5px;height:5px;border-radius:50%;background:#fff;animation:ltdot 1s infinite}
+.lt-b.ty i:nth-child(2){animation-delay:.15s}.lt-b.ty i:nth-child(3){animation-delay:.3s}
+@keyframes ltdot{0%,100%{opacity:.25}50%{opacity:1}}
+.lt-say{width:100%;display:flex;gap:8px;margin-top:6px}
+#lt .lt-say .lt-in{padding:9px 16px;font-size:16px}
+#lt .lt-say button{flex:none;width:40px;height:40px;border-radius:50%;background:var(--red)}
+.lt-say button svg{width:19px;height:19px}
+#lt .lt-acts{margin-top:4px}
+#lt .lt-acts svg{width:23px;height:23px}
+.lt-grab{flex:none;width:36px;height:4px;margin:8px auto 0;border-radius:2px;background:rgba(255,255,255,.25)}
+#lt .lt-pl .nx{flex:none;padding:6px 9px;border-radius:999px;background:rgba(255,255,255,.12);font-size:11px;white-space:nowrap}
+#lt .lt-pl .nx:disabled{opacity:.4}
+#nhp{position:fixed;inset:0;z-index:41;display:flex;flex-direction:column;background:#121214;color:#fff;--red:#ec4141;-webkit-user-select:none;user-select:none}
+#nhp[hidden]{display:none}
+#nhp button{border:0;background:none;color:inherit;display:grid;place-items:center;padding:0;font:inherit}
+#nhp svg{display:block}
+.nh-top{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 6px) 14px 6px;position:relative;z-index:2}
+.nh-top b{flex:1;text-align:center;font-size:16px}
+#nhp .nh-top button{width:40px;height:40px;border-radius:50%}
+.nh-top svg{width:22px;height:22px}
+#nhp .nh-top .nh-tx{width:auto;padding:0 6px;font-size:13px;color:rgba(255,255,255,.75)}
+.nh-sc{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative;padding-bottom:calc(var(--sab,env(safe-area-inset-bottom)) + 24px)}
+.nh-hd{position:relative;padding:calc(env(safe-area-inset-top) + 64px) 20px 18px;text-align:center;overflow:hidden}
+.nh-bg{position:absolute;inset:-40px;z-index:0;background-size:cover;background-position:center;filter:blur(40px) brightness(.5) saturate(1.3);transform:translateZ(0)}
+.nh-hd>*:not(.nh-bg){position:relative;z-index:1}
+.nh-av{width:80px;height:80px;margin:0 auto;border-radius:50%;overflow:hidden;background:#3a3a3c;border:2px solid rgba(255,255,255,.85);display:grid;place-items:center}
+.nh-av img{width:100%;height:100%;object-fit:cover}
+.nh-nm{margin-top:10px;font-size:20px;font-weight:700}
+#nhp .nh-sg{display:inline-flex;margin-top:6px;padding:4px 12px;border-radius:999px;background:rgba(255,255,255,.12);font-size:12px;color:rgba(255,255,255,.8);max-width:80%}
+.nh-st{display:flex;justify-content:center;gap:34px;margin-top:16px}
+.nh-st div{font-size:11px;color:rgba(255,255,255,.6)}
+.nh-st b{display:block;font-size:19px;color:#fff;font-variant-numeric:tabular-nums}
+.nh-sec{padding:0 16px}
+.nh-h{display:flex;align-items:center;justify-content:space-between;margin:20px 0 8px;font-size:15px;font-weight:700}
+.nh-h small{font-size:12px;font-weight:400;color:rgba(255,255,255,.5)}
+.nh-like{display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:linear-gradient(135deg,rgba(236,65,65,.35),rgba(255,255,255,.07))}
+.nh-like img,.nh-like .ph,.nh-r img,.nh-r .ph{width:54px;height:54px;border-radius:10px;object-fit:cover;background:rgba(255,255,255,.1);flex:none}
+.nh-like .tx,.nh-r .tx{flex:1;min-width:0}
+.nh-like .tx b,.nh-r .tx b{display:block;font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nh-like .tx small,.nh-r .tx small{display:block;margin-top:3px;font-size:12px;color:rgba(255,255,255,.55);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#nhp .nh-go{flex:none;padding:8px 14px;border-radius:999px;background:var(--red);font-size:13px;font-weight:600}
+.nh-r{display:flex;align-items:center;gap:12px;padding:8px 0;cursor:pointer}
+.nh-card{margin:20px 16px 0;padding:22px 16px;border-radius:16px;background:rgba(255,255,255,.07);text-align:center}
+.nh-card p{margin:6px 0 12px;font-size:13px;line-height:1.6;color:rgba(255,255,255,.55)}
+#nhp .nh-card button{display:inline-grid;padding:10px 26px;border-radius:999px;background:var(--red);font-size:14px;font-weight:600}
+.nh-empty{padding:8px 0;font-size:13px;color:rgba(255,255,255,.45)}
+@media (max-height:700px){#lt{--d:min(56vw,25vh,230px)}.lt-chat{max-height:62px}.lt-top{min-height:44px}}
 #ltMini{position:fixed;z-index:45;left:0;top:0;display:flex;align-items:center;gap:8px;padding:5px 6px 5px 5px;border-radius:26px;max-width:210px;background-color:rgba(255,255,255,.62);background-position:center;background-size:cover;background-repeat:no-repeat;-webkit-backdrop-filter:blur(22px) saturate(1.8);backdrop-filter:blur(22px) saturate(1.8);border:1px solid rgba(255,255,255,.85);color:#1c1c1e;font-size:13px;box-shadow:0 6px 22px rgba(0,0,0,.14);touch-action:none;-webkit-user-select:none;user-select:none}
 @media(prefers-color-scheme:dark){#ltMini{background:rgba(28,28,30,.68);border-color:rgba(255,255,255,.14);color:#fff;box-shadow:0 6px 22px rgba(0,0,0,.5)}}
 .lm-cv{flex:none;width:32px;height:32px;animation:ltspin 8s linear infinite;animation-play-state:paused}
@@ -1684,7 +1712,7 @@ function plusAction(a){
   else if(a==='calllog')openCallLogs();
   else if(a==='mystat')myStatDlg();
   else if(a==='tarot')openTarot();
-  else if(a==='ncm')ncmDlg();
+  else if(a==='ncm')openNh();
   else toast('这个功能下一步接入');
 }
 function buildPP(){
@@ -3364,6 +3392,7 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 /* ========== 一起听 ========== */
 G.listen={songs:[],idx:0};
 const lt={on:false,t0:0,elapsed:0,runSince:0,ct:null,url:''},au=new Audio();au.preload='auto';au.setAttribute('playsinline','');
+const LY={id:null,lines:[],i:-1,err:false};let ltTy=false,ltBusy=false,ltRT=0,ltLast=null,nhOn=false;
 G.listen.mode=G.listen.mode||'list';
 const svg=(d,f)=>'<svg viewBox="0 0 24 24" '+(f?'fill="currentColor"':'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"')+'>'+d+'</svg>';
 const IC2={play:svg('<path d="M8 5v14l11-7z"/>',1),pause:svg('<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>',1),prev:svg('<path d="M6 5h2v14H6zM20 5v14L9 12z"/>',1),next:svg('<path d="M16 5h2v14h-2zM4 5l11 7L4 19z"/>',1),list:svg('<path d="M4 7h11M4 12h11M4 17h7M18 13v7M14.5 16.5h7"/>'),add:svg('<path d="M12 5v14M5 12h14"/>'),down:svg('<path d="M6 9l6 6 6-6"/>'),x:svg('<path d="M6 6l12 12M18 6 6 18"/>'),note:svg('<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>')};
@@ -3371,115 +3400,22 @@ const ICN={
   heart:svg('<path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l1.7 1.7L12 21.5l7.1-7.1 1.7-1.7a5 5 0 0 0 0-7.1z"/>'),
   cloud:svg('<path d="M18 10a6 6 0 0 0-11.7-1.5A4.5 4.5 0 0 0 7 17.5h11a3.75 3.75 0 0 0 0-7.5z"/>'),
   more:svg('<circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/>',1),
+  send:svg('<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>'),
   queue:svg('<path d="M3 6h13M3 12h13M3 18h8"/><path d="M16.5 14.5v6l5-3z" fill="currentColor"/>')
 };
 const lp=h('section');lp.id='lt';lp.hidden=true;
 lp.innerHTML=`<div class="lt-blur"></div><div class="lt-bg"></div><div class="lt-shade"></div>
 <div class="lt-top"><button id="ltMin" aria-label="缩小">${IC2.down}</button><div class="lt-ti"><div class="lt-t" id="ltT"></div><div class="lt-a" id="ltAr"></div></div><button id="ltEnd" aria-label="结束一起听">${IC2.x}</button></div>
 <div class="lt-tog"><div class="lt-pair"><div class="lt-av" id="ltA"></div><div class="lt-av" id="ltB"></div></div><div class="lt-tx"><div class="lt-who" id="ltWho"></div><div class="lt-time" id="ltTime">已一起听 0 分钟</div></div></div>
-<div class="lt-stage"><div class="lt-dw"><svg class="lt-arm" viewBox="0 0 100 150"><circle cx="14" cy="14" r="12" fill="#2b2b2e" stroke="rgba(255,255,255,.6)" stroke-width="2"/><circle cx="14" cy="14" r="4.5" fill="rgba(255,255,255,.85)"/><path d="M14 14V78L58 124" fill="none" stroke="rgba(255,255,255,.88)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="50" y="118" width="16" height="24" rx="3" fill="rgba(255,255,255,.92)" transform="rotate(-44 58 130)"/></svg><div class="lt-disc"><div class="lt-cv" id="ltCv"></div></div></div></div>
+<div class="lt-stage"><div class="lt-dw"><svg class="lt-arm" viewBox="0 0 100 150"><circle cx="14" cy="14" r="12" fill="#2b2b2e" stroke="rgba(255,255,255,.6)" stroke-width="2"/><circle cx="14" cy="14" r="4.5" fill="rgba(255,255,255,.85)"/><path d="M14 14V78L58 124" fill="none" stroke="rgba(255,255,255,.88)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="50" y="118" width="16" height="24" rx="3" fill="rgba(255,255,255,.92)" transform="rotate(-44 58 130)"/></svg><div class="lt-disc"><div class="lt-cv" id="ltCv"></div></div></div><div class="lt-lyl" id="ltLyL"></div></div>
+<div class="lt-ly" id="ltLy"></div><div class="lt-chat" id="ltChat"></div><div class="lt-say"><input class="lt-in" id="ltSay" placeholder="和对方说点什么…" autocomplete="off" enterkeyhint="send"><button id="ltSend" aria-label="发送">${ICN.send}</button></div>
 <div class="lt-acts"><button id="ltFav">${ICN.heart}<span>喜欢</span></button><button id="ltAdd">${IC2.add}<span>导入</span></button><button id="ltCloud">${ICN.cloud}<span>网易云歌单</span></button><button id="ltMore">${ICN.more}<span>更多</span></button></div>
 <div class="lt-prog"><span id="ltCur">0:00</span><input type="range" id="ltSeek" min="0" max="1000" value="0"><span id="ltDur">0:00</span></div>
 <div class="lt-ctl"><button id="ltMode" aria-label="播放模式"></button><button id="ltPrev" aria-label="上一首">${IC2.prev}</button><button class="big" id="ltPlay" aria-label="播放/暂停"></button><button id="ltNext" aria-label="下一首">${IC2.next}</button><button id="ltList" aria-label="播放列表">${ICN.queue}</button></div>
 <div class="lt-scrim"></div>
-<div class="lt-pan"><div class="lt-tabs"><button data-t="q" class="on">播放列表<i id="ltQn"></i></button><button data-t="n">网易云歌单</button><span class="sp"></span><button id="ltShX" aria-label="收起">${IC2.down}</button></div><div class="lt-sbody" id="ltSB"></div></div>`;
+<div class="lt-pan"><div class="lt-grab"></div><div class="lt-tabs"><button data-t="q" class="on">播放列表<i id="ltQn"></i></button><button data-t="n">网易云歌单</button><span class="sp"></span><button id="ltShX" aria-label="收起">${IC2.down}</button></div><div class="lt-sbody" id="ltSB"></div></div>`;
 const mn=h('div');mn.id='ltMini';mn.hidden=true;mn.innerHTML='<span class="lm-cv" id="lmCv"></span><span class="lm-t" id="lmT"></span><button class="lm-p" id="lmP"></button>';
-
 document.body.append(lp,mn);
-/* 一起听新增：个人主页与字卡聊天 */
-/* 网易云式无标签导航：点击歌曲标题进入主页，点击双人一起听卡片进入聊天 */
-const ltNav=document.createElement('div');ltNav.className='lt-nav';ltNav.hidden=true;
-const ltProfile=document.createElement('section');ltProfile.className='lt-extra lt-profile';ltProfile.innerHTML='<div class="lt-extra-head"><button data-back>‹ 返回播放</button><b>我的网易云主页</b><button data-edit>账号</button></div><div class="lt-profile-banner"><div class="lt-profile-banner-shade"></div></div><div class="lt-profile-hero"><div class="lt-profile-av"></div><h2 class="lt-profile-name">我的音乐主页</h2><p class="lt-profile-sub">听歌是一种生活方式</p><div class="lt-profile-badges"></div><div class="lt-profile-stats"><span><b>—</b>关注</span><span><b>—</b>粉丝</span><span><b>—</b>等级</span></div></div><div class="lt-profile-section"><b>个人资料</b><div class="lt-profile-info"></div></div><div class="lt-profile-section"><b>听歌排行</b><div class="lt-profile-ranking"></div></div><div class="lt-profile-section"><b>创建的歌单</b><div class="lt-profile-created lt-profile-lists"></div></div><div class="lt-profile-section"><b>收藏的歌单</b><div class="lt-profile-collected lt-profile-lists"></div></div><div class="lt-profile-section"><button class="lt-profile-open">打开网易云歌单管理　›</button></div>';
-const ltChat=document.createElement('section');ltChat.className='lt-extra lt-chat';ltChat.innerHTML='<div class="lt-extra-head"><button data-back>‹ 返回播放</button><b>一起听</b><span></span></div><div class="lt-chat-now"></div><div class="lt-chat-feed"></div><div class="lt-chat-compose"><button class="lt-chat-card">字卡</button><input placeholder="说点什么…" maxlength="500"><button class="lt-chat-send">发送</button></div>';
-lp.append(ltProfile,ltChat);
-function ltView(v){lp.dataset.view=v;ltNav.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));if(v==='profile')ltProfilePaint();if(v==='chat')ltChatPaint()}
-ltNav.addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b)ltView(b.dataset.v)});
-$('ltT').addEventListener('click',()=>ltView('profile'));
-$('ltAr').addEventListener('click',()=>ltView('profile'));
-$('ltWho').parentElement.parentElement.addEventListener('click',()=>ltView('chat'));
-$('ltWho').parentElement.parentElement.style.cursor='pointer';
-[ltProfile,ltChat].forEach(x=>x.querySelector('[data-back]').onclick=()=>ltView('play'));
-const NPROFILE={uid:null,detail:null,level:null,sub:null,record:null,loading:false,error:'',restoring:false,restoreTried:false,restoreError:''};
-async function ltProfileLoad(force=false){
- const n=ncmFix(),p=n.profile||{};if(!p.uid)return;
- const uid=String(p.uid);if(NPROFILE.loading)return;
- if(!force&&NPROFILE.uid===uid&&NPROFILE.detail&&NPROFILE.sub&&NPROFILE.record)return;
- NPROFILE.uid=uid;NPROFILE.loading=true;NPROFILE.error='';
- const tasks=await Promise.allSettled([
-  ncmCall('/user/detail',{uid}),
-  ncmCall('/user/level',{}),
-  ncmCall('/user/subcount',{}),
-  ncmCall('/user/record',{uid,type:'1'})
- ]);
- const val=i=>tasks[i].status==='fulfilled'?tasks[i].value:null;
- NPROFILE.detail=val(0);NPROFILE.level=val(1);NPROFILE.sub=val(2);NPROFILE.record=val(3);
- const failed=tasks.filter(x=>x.status==='rejected').length;
- NPROFILE.error=failed===4?'个人资料接口暂时不可用，请检查网易云 API 服务版本或登录状态':failed?'部分资料暂时无法读取，其余内容仍可显示':'';
- const d=NPROFILE.detail&&NPROFILE.detail.profile;
- if(d){n.profile={...p,uid,name:d.nickname||p.name,nickname:d.nickname||p.nickname,avatar:https(d.avatarUrl||p.avatar),signature:d.signature||'',background:https(d.backgroundUrl||d.backgroundUrl)};save();}
- NPROFILE.loading=false;if(lp.dataset.view==='profile')ltProfilePaint();
-}
-function ltProfilePaint(){
- const n=ncmFix(),p=n.profile||{},q=ltProfile.querySelector.bind(ltProfile);
- const av=q('.lt-profile-av'),lists=q('.lt-profile-created'),collected=q('.lt-profile-collected');
- if(ncmBase()&&!p.uid){
-  q('.lt-profile-name').textContent=NPROFILE.restoring?'正在恢复网易云登录状态…':'尚未读取到网易云账号';
-  q('.lt-profile-sub').textContent=NPROFILE.restoring?'正在验证本机保存的登录凭证':(NPROFILE.restoreError||'登录凭证可能未保存，或 API 暂时无法读取账号资料');
-  q('.lt-profile-info').textContent='';q('.lt-profile-ranking').textContent='';
-  q('.lt-profile-created').innerHTML='<p class="lt-profile-empty">'+(NPROFILE.restoring?'正在读取账号资料…':'暂时无法显示个人主页')+'</p>';
-  q('.lt-profile-collected').innerHTML='';
-  if(!NPROFILE.restoring&&!NPROFILE.restoreTried){
-   NPROFILE.restoring=true;NPROFILE.restoreTried=true;
-   ncmCk().then(async ck=>{if(!ck)throw Error('本机没有保存到网易云登录凭证，请重新扫码登录');const pf=await ncmProfile();if(!pf)throw Error('API 已连接，但没有返回账号 ID。请检查登录凭证和 API 服务');})
-   .catch(e=>{NPROFILE.restoreError=e.message||'登录恢复失败'})
-   .finally(()=>{NPROFILE.restoring=false;if(lp.dataset.view==='profile')ltProfilePaint()});
-  }
-  if(NPROFILE.restoreError){const retry=document.createElement('button');retry.type='button';retry.className='lt-profile-open';retry.textContent='重新验证 / 重新登录';retry.onclick=()=>{NPROFILE.restoreTried=false;NPROFILE.restoreError='';NPROFILE.restoring=false;ltProfilePaint()};q('.lt-profile-section:last-child').prepend(retry)}
-  return;
- }
- if(!p.uid){q('.lt-profile-name').textContent='连接网易云后查看';q('.lt-profile-created').innerHTML='<p class="lt-profile-empty">尚未设置网易云 API</p>';return;}
- if(NP.uid!==String(p.uid)){NP.uid=String(p.uid);NP.lists=null;}
- if(!NP.lists&&!NP.loading)npLists();
- if(!NPROFILE.detail&&!NPROFILE.loading&&!NPROFILE.profileTried){NPROFILE.profileTried=true;ltProfileLoad().catch(e=>{NPROFILE.error=e.message||'资料读取失败';NPROFILE.loading=false;if(lp.dataset.view==='profile')ltProfilePaint()})}
- const d=NPROFILE.detail&&NPROFILE.detail.profile||{},lv=NPROFILE.level||{},sub=NPROFILE.sub||{},record=NPROFILE.record||{};
- av.innerHTML='';if(p.avatar||d.avatarUrl){const im=document.createElement('img');im.src=https(d.avatarUrl||p.avatar);im.alt='网易云头像';av.append(im)}else av.textContent='♫';
- q('.lt-profile-name').textContent=d.nickname||p.nickname||p.name||'网易云用户';q('.lt-profile-sub').textContent=d.signature||p.signature||'这个人很神秘，还没有填写简介';
- const banner=q('.lt-profile-banner');banner.style.backgroundImage=d.backgroundUrl?'linear-gradient(180deg,rgba(0,0,0,.08),rgba(18,18,20,.92)),url("'+https(d.backgroundUrl)+'")':'';
- q('.lt-profile-badges').innerHTML='';const badges=[];if(lv.data&&lv.data.level)badges.push('Lv.'+lv.data.level);if(d.vipType)badges.push(d.vipType===11?'黑胶 VIP':'VIP');if(d.gender===1)badges.push('男');else if(d.gender===2)badges.push('女');badges.forEach(t=>{const b=document.createElement('span');b.textContent=t;q('.lt-profile-badges').append(b)});
- const st=q('.lt-profile-stats');st.innerHTML='';[[d.follows??'—','关注'],[d.followeds??'—','粉丝'],[lv.data&&lv.data.level?'Lv.'+lv.data.level:'—','等级']].forEach(a=>{const x=document.createElement('span'),b=document.createElement('b');b.textContent=a[0];x.append(b,document.createTextNode(a[1]));st.append(x)});
- const info=q('.lt-profile-info');info.innerHTML='';const infos=[['用户 ID',p.uid],['性别',d.gender===1?'男':d.gender===2?'女':'未公开'],['生日',d.birthday?new Date(Number(d.birthday)).toLocaleDateString():'未公开'],['地区',[d.provinceName,d.cityName].filter(Boolean).join(' · ')||'未公开'],['创建歌单',sub.createdPlaylistCount??'—'],['收藏歌单',sub.subPlaylistCount??'—']];infos.forEach(([k,v])=>{const x=document.createElement('div');x.innerHTML='<span></span><b></b>';x.children[0].textContent=k;x.children[1].textContent=String(v);info.append(x)});
- const rank=q('.lt-profile-ranking');rank.innerHTML='';const songs=record.weekData||record.allData||[];if(songs.length){songs.slice(0,10).forEach((it,i)=>{const song=it.song||{},x=document.createElement('div');x.className='lt-profile-rank';const name=document.createElement('b'),artist=document.createElement('span'),count=document.createElement('small');name.textContent=(i+1)+'. '+(song.name||'未知歌曲');artist.textContent=(song.ar||[]).map(a=>a.name).join(' / ');count.textContent='听 '+(it.playCount||0)+' 次';x.append(name,artist,count);rank.append(x)})}else rank.innerHTML='<p class="lt-profile-empty">'+(NPROFILE.loading?'正在读取听歌排行…':'暂无可显示的听歌排行（可能是 API 未提供或账号记录不可见）')+'</p>';
- const all=NP.lists||[];lists.innerHTML='';collected.innerHTML='';const own=all.filter(x=>String((x.creator&&x.creator.userId)||'')===String(p.uid));const saved=all.filter(x=>String((x.creator&&x.creator.userId)||'')!==String(p.uid));
- const addList=(host,x)=>{const row=document.createElement('button');row.type='button';row.className='lt-profile-list';const cover=document.createElement('img');cover.className='lt-profile-cover';cover.src=https(x.coverImgUrl||'');cover.alt='';const meta=document.createElement('span'),name=document.createElement('b'),count=document.createElement('small');name.textContent=x.name||'未命名歌单';count.textContent=(x.trackCount||0)+' 首歌曲';meta.append(name,count);row.append(cover,meta);row.onclick=()=>{ltView('play');openSheet('n');npOpen(x)};host.append(row)};
- if(NP.loading&&!all.length){lists.innerHTML='<p class="lt-profile-empty">正在加载歌单…</p>'}else if(own.length)own.forEach(x=>addList(lists,x));else lists.innerHTML='<p class="lt-profile-empty">暂无创建的歌单</p>';
- if(saved.length)saved.forEach(x=>addList(collected,x));else collected.innerHTML='<p class="lt-profile-empty">暂无收藏的歌单</p>';
- if(NPROFILE.error){const er=document.createElement('p');er.className='lt-profile-empty';er.textContent=NPROFILE.error;info.append(er)}
-}
-ltProfile.querySelector('.lt-profile-open').onclick=()=>{ltView('play');openSheet('n')};
-ltProfile.querySelector('[data-edit]').onclick=()=>{ltView('play');ncmDlg()};
-function ltChatPaint(){
- const ct=lt.ct||cur(),feed=ltChat.querySelector('.lt-chat-feed'),s=sg();
- ltChat.querySelector('.lt-chat-now').textContent=(s?s.title+' · '+(s.artist||''):'还没有正在播放的歌曲')+'　正在和 '+(ct.profile.name||'对方')+' 一起听';
- feed.innerHTML='';
- (ct.msgs||[]).slice(-80).forEach(m=>{
-  const row=document.createElement('div');row.className='lt-chat-msg '+(m.mine?'mine':'theirs');
-  const av=document.createElement('div');av.className='lt-chat-av';fillAv(av,m.mine?(ct.profile.myAvatar||''):(ct.profile.avatar||''));
-  const body=document.createElement('div');body.className='lt-chat-body';
-  const bubble=document.createElement('div');bubble.className='lt-chat-bubble';
-  if(m.type==='image'&&m.src){const im=document.createElement('img');im.src=m.src;bubble.append(im)}else bubble.textContent=m.text||'';
-  const time=document.createElement('time');time.textContent=m.t?new Date(m.t).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}):'';
-  body.append(bubble,time);if(m.mine)row.append(body,av);else row.append(av,body);feed.append(row);
- });
- feed.scrollTop=feed.scrollHeight;
-}
-function ltChatSend(text){
- const ct=lt.ct||cur(),v=String(text||'').trim();if(!v)return;
- ct.msgs.push({id:Date.now()+Math.random(),mine:true,t:Date.now(),text:v});save();ltChatPaint();auto(ct);
-}
-ltChat.querySelector('.lt-chat-send').onclick=()=>{const inp=ltChat.querySelector('input');ltChatSend(inp.value);inp.value=''};
-ltChat.querySelector('input').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();ltChat.querySelector('.lt-chat-send').click()}});
-ltChat.querySelector('.lt-chat-card').onclick=()=>{const ct=lt.ct||cur(),cards=pickCards(ct,1);if(!cards.length){toast('当前聊天没有可用字卡');return}const c=cards[0];if(c.type==='image')ct.msgs.push({id:Date.now()+Math.random(),mine:true,t:Date.now(),type:'image',src:c.content,sticker:true});else ct.msgs.push({id:Date.now()+Math.random(),mine:true,t:Date.now(),text:c.content});save();ltChatPaint();auto(ct)};
-
 const sg=()=>G.listen.songs[G.listen.idx];
 const mm=t=>isFinite(t)&&t>0?Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0'):'0:00';
 const grad=s=>{let n=0;for(const c of s.title)n=(n*31+c.charCodeAt(0))%360;return 'linear-gradient(135deg,hsl('+n+' 12% 38%),hsl('+(n+40)%360+' 10% 18%))'};
@@ -3506,13 +3442,14 @@ function ltPaint(){
   $('ltFav').classList.toggle('on',!!(s&&s.fav));
   $('lmT').textContent=s?s.title:'一起听';
   lp.classList.toggle('playing',pl);mn.classList.toggle('lm-on',pl);
+  lyLoad(s);
+  if(s&&ltLast!==s.id){ltLast=s.id;if(lt.on)ltSongChanged(s)}
   if(typeof sheetDraw==='function'&&shOn())sheetDraw();
-  if(lp.dataset.view==='chat')ltChatPaint();if(lp.dataset.view==='profile')ltProfilePaint();
 }
 function ltProg(){
   const d=au.duration,c=au.currentTime,ready=au.readyState>=1&&Number.isFinite(d)&&d>0;
   $('ltCur').textContent=mm(c);$('ltDur').textContent=ready?mm(d):'读取中';
-  if(!lt.drag)$('ltSeek').value=ready?Math.round(c/d*1000):0;$('ltSeek').style.setProperty('--p',(ready?c/d*100:0)+'%');
+  if(!lt.drag)$('ltSeek').value=ready?Math.round(c/d*1000):0;$('ltSeek').style.setProperty('--p',(ready?c/d*100:0)+'%');lyTick(c);
 }
 async function playSong(i){
   const L=G.listen;if(!L.songs.length)return;L.idx=(i+L.songs.length)%L.songs.length;const s=sg();let src=s.src;
@@ -3535,10 +3472,10 @@ sk.onchange=()=>{if(au.duration>0)au.currentTime=au.duration*sk.value/1000;lt.dr
 const logLT=(ct,text)=>{ct.msgs.push({id:Date.now()+Math.random(),mine:false,type:'call',text,t:Date.now()});save();refreshFor(ct)};
 function openLT(){
   if(!lt.on){lt.on=true;lt.elapsed=0;lt.runSince=0;lt.t0=Date.now();lt.ct=cur();logLT(lt.ct,'你邀请 '+lt.ct.profile.name+' 一起听歌')}
-  lp.hidden=false;ltPaint();ltProg();if(!G.listen.songs.length)setTimeout(()=>openSheet('q'),250);
+  lp.hidden=false;ltPaint();ltProg();ltChatDraw();setTimeout(()=>{if(!G.listen.songs.length&&!shOn())openSheet('q')},250);
 }
 function endLT(){
-  au.pause();lp.hidden=true;const ct=lt.ct,secs=listenSeconds();
+  au.pause();lp.hidden=true;const ct=lt.ct,secs=listenSeconds();G.listen.total=(G.listen.total||0)+secs;save();
   lt.on=false;lt.elapsed=0;lt.runSince=0;lt.ct=null;ltPaint();if(ct)logLT(ct,'一起听结束 · '+mm(secs));
 }
 $('ltMin').onclick=()=>{lp.hidden=true};
@@ -3630,7 +3567,7 @@ function discDlg(){
     mk('恢复默认唱片',()=>{dc.img='';dc.hide=false;save();ltPaint();toast('已恢复默认唱片')});
   },[['完成',null,'primary']]);
 }
-lp.querySelector('.lt-disc').onclick=discDlg;
+lp.querySelector('.lt-disc').onclick=()=>{if(G.listen.disc&&G.listen.disc.hide)discDlg();else toggleLy()};
 $('ltMode').onclick=()=>cycleMode();
 /* ===== 网易云风 · 底部抽屉：播放列表 / 网易云歌单 ===== */
 let shTab='q';
@@ -3686,7 +3623,7 @@ async function npLists(){
   NP.loading=true;NP.err='';sheetDraw();
   try{const r=await ncmCall('/user/playlist',{uid:String(pf.uid),limit:'100'});NP.lists=r.playlist||[];if(!NP.lists.length&&r.code&&r.code!==200)NP.err='读取失败（'+r.code+'）'}
   catch(e){NP.err=npMsg(e,'读取失败')}
-  NP.loading=false;sheetDraw();if(lp.dataset.view==='profile')ltProfilePaint();
+  NP.loading=false;sheetDraw();if(nhOn)nhDraw();
 }
 async function npOpen(p){
   const my=++NP.seq;NP.view='tracks';NP.cur=p;NP.tracks=null;NP.err='';NP.loading=true;sheetDraw();
@@ -3721,7 +3658,7 @@ function drawN(box){
     e.append(b1,b2);box.append(e);return;
   }
   const acc=h('div','lt-acc'),tx=h('div','tx');
-  if(pf){const im=pf.avatar?h('img'):h('div','ph');if(pf.avatar){im.src=pf.avatar;im.onerror=()=>{im.style.visibility='hidden'}}tx.append(h('span','',pf.name||'已登录'),h('small','','网易云已连接'));acc.append(im,tx);const mb=h('button','','账号');mb.onclick=ncmDlg;acc.append(mb)}
+  if(pf){const im=pf.avatar?h('img'):h('div','ph');if(pf.avatar){im.src=pf.avatar;im.onerror=()=>{im.style.visibility='hidden'}}tx.append(h('span','',pf.name||'已登录'),h('small','','网易云已连接'));acc.append(im,tx);const hb=h('button','','主页');hb.onclick=openNh;const mb=h('button','','账号');mb.onclick=ncmDlg;acc.append(hb,mb)}
   else{acc.append(h('div','ph'));tx.append(h('span','','API 已连接'),h('small','','登录后能看到你自己的歌单'));acc.append(tx);const lb=h('button','','扫码登录');lb.onclick=ncmDlg;acc.append(lb)}
   box.append(acc);
   const row=h('div','lt-sr'),inp=h('input','lt-in'),go=h('button','','搜索');
@@ -3741,7 +3678,7 @@ function drawN(box){
       tx2.append(h('b','',s.name||('歌曲 '+s.id)),h('small','',(s.ar||s.artists||[]).map(a=>a.name).join(' / ')));
       if(have.has(s.id)){ad.textContent='✓';ad.disabled=true}else{ad.textContent='+';ad.onclick=e=>{e.stopPropagation();ncmAdd([ncmSong(s)])}}
       r.onclick=()=>{if(!ad.disabled)ncmAdd([ncmSong(s)])};
-      r.append(im,tx2,ad);box.append(r);
+      if(!ad.disabled&&G.listen.songs.length){const nx=h('button','nx','下一首');nx.onclick=e=>{e.stopPropagation();ncmAdd([ncmSong(s)],true)};r.append(im,tx2,nx,ad)}else r.append(im,tx2,ad);box.append(r);
     });
   };
   if(NP.view==='tracks'||NP.view==='search'){
@@ -3763,9 +3700,164 @@ function drawN(box){
   });
 }
 /* 网易云弹窗（连接 / 登录）关闭后，自动刷新抽屉里的歌单 */
-new MutationObserver(()=>{if($('modal').hidden&&shOn()&&shTab==='n'){npEnter();sheetDraw()}}).observe($('modal'),{attributes:true,attributeFilter:['hidden']});
+new MutationObserver(()=>{if($('modal').hidden){if(shOn()&&shTab==='n'){npEnter();sheetDraw()}if(nhOn){npEnter();nhDraw()}}}).observe($('modal'),{attributes:true,attributeFilter:['hidden']});
+/* ===== 听歌聊天（沿用字卡库的回复逻辑，记录单独保存在一起听里） ===== */
+const LC=()=>G.listen.msgs||(G.listen.msgs=[]);
+function ltBub(m){
+  const b=h('div','lt-b'+(m.sys?' sys':m.mine?' me':'')+(m.type==='emoji'?' emo':'')+(m.type==='image'?' img':''));
+  if(m.type==='image'){const im=h('img');im.src=m.src;im.alt='';b.append(im)}else b.textContent=m.text;
+  return b;
+}
+function ltChatDraw(){const box=$('ltChat');box.innerHTML='';LC().slice(-40).forEach(m=>box.append(ltBub(m)));if(ltTy){const t=h('div','lt-b ty');t.innerHTML='<i></i><i></i><i></i>';box.append(t)}box.scrollTop=box.scrollHeight}
+function ltPush(m){const a=LC();a.push(m);if(a.length>60)a.splice(0,a.length-60);save();ltChatDraw()}
+async function ltTheySay(n){
+  const ct=lt.ct||cur();if(!ct||ltBusy||!replyPool(ct).length)return;
+  ltBusy=true;
+  try{
+    const cfg=ct.cfg,cnt=n||Math.max(1,Math.min(3,cfg.cardMin+Math.floor(Math.random()*(cfg.cardMax-cfg.cardMin+1))));
+    const pick=pickCards(ct,cnt),used=new Set(pick.map(c=>c.id));
+    for(const c of pick){
+      if(!lt.on)break;
+      ltTy=true;ltChatDraw();await sleep(700+Math.random()*900);ltTy=false;
+      const m={id:Date.now()+Math.random(),mine:false,t:Date.now()};
+      if(c.type==='image'){m.type='image';m.src=c.content}
+      else if(c.type==='emoji'){m.type='emoji';m.text=c.content}
+      else{m.text=c.content;if(cfg.spliceOn!==false&&Math.random()*100<(Number(cfg.spliceProb)||0)){const sp=spliceText(ct,c,used);if(sp)m.text=sp}}
+      ltPush(m);
+    }
+  }finally{ltBusy=false;ltTy=false;ltChatDraw()}
+}
+function ltSend(){
+  const inp=$('ltSay'),v=inp.value.trim();if(!v)return;inp.value='';
+  const ct=lt.ct||cur();ltPush({id:Date.now(),mine:true,text:v,t:Date.now()});
+  if(!ct||!replyPool(ct).length){toast('没有可用的字卡，先选用字卡分组');return}
+  clearTimeout(ltRT);ltTy=true;ltChatDraw();
+  const lo=Math.min(10,Math.max(0,Number(ct.cfg.minDelay)||0)),hi=Math.min(10,Math.max(lo,Number(ct.cfg.maxDelay)||lo));
+  ltRT=setTimeout(()=>{ltTy=false;ltTheySay()},(lo+Math.random()*(hi-lo))*1000);
+}
+function ltSongChanged(s){
+  if(!lt.on)return;
+  ltPush({id:Date.now()+Math.random(),sys:1,text:'正在播放 · '+s.title,t:Date.now()});
+  if(s.kind!=='file'){const H=G.listen.hist||(G.listen.hist=[]),key=String(s.nid||s.src||s.title);
+    if(!H.length||H[0].key!==key){H.unshift({key,kind:s.kind,nid:s.nid,src:s.src,title:s.title,artist:s.artist,cover:s.cover,t:Date.now()});if(H.length>60)H.length=60}}
+  G.listen.plays=(G.listen.plays||0)+1;save();
+  if(Math.random()<.35)setTimeout(()=>ltTheySay(1),1800+Math.random()*2500);
+}
+/* ===== 歌词 ===== */
+function parseLrc(t){const out=[];String(t||'').split(/\r?\n/).forEach(l=>{const tags=[...l.matchAll(/\[(\d+):(\d+(?:\.\d+)?)\]/g)];if(!tags.length)return;const tx=l.replace(/\[[^\]]*\]/g,'').trim();if(!tx)return;tags.forEach(m=>out.push({t:(+m[1])*60+parseFloat(m[2]),x:tx}))});return out.sort((a,b)=>a.t-b.t)}
+function lyDraw(){
+  const box=$('ltLyL');box.innerHTML='';
+  LY.lines.forEach(l=>box.append(h('div','',l.x)));
+  LY.i=-1;$('ltLy').textContent='';
+  if(!LY.lines.length)lp.classList.remove('lt-lyv');
+}
+async function lyLoad(s){
+  const id=(s&&s.kind==='ncm'&&s.nid)?s.nid:null;
+  if(LY.id===id)return;
+  LY.id=id;LY.lines=[];LY.err=false;lyDraw();
+  if(!id||!ncmBase())return;
+  try{const r=await ncmCall('/lyric',{id:String(id)});if(LY.id!==id)return;LY.lines=parseLrc(r&&r.lrc&&r.lrc.lyric)}catch(e){LY.err=true}
+  lyDraw();lyTick(au.currentTime);
+}
+function lyTick(c){
+  if(!LY.lines.length)return;
+  let i=-1;for(let k=0;k<LY.lines.length;k++){if(LY.lines[k].t<=c+.25)i=k;else break}
+  if(i===LY.i)return;LY.i=i;
+  $('ltLy').textContent=i>=0?LY.lines[i].x:'';
+  const box=$('ltLyL');box.querySelectorAll('.on').forEach(x=>x.classList.remove('on'));
+  const el=box.children[i];if(el){el.classList.add('on');if(lp.classList.contains('lt-lyv'))box.scrollTo({top:el.offsetTop-box.clientHeight/2+el.clientHeight/2,behavior:'smooth'})}
+}
+function toggleLy(){
+  if(!LY.lines.length){toast(LY.id?'这首歌暂无歌词':'连上网易云后，网易云的歌曲可以显示歌词');return}
+  lp.classList.toggle('lt-lyv');
+  if(lp.classList.contains('lt-lyv')){const b=$('ltLyL'),el=b.children[Math.max(0,LY.i)];if(el)b.scrollTop=el.offsetTop-b.clientHeight/2+el.clientHeight/2}
+}
+/* ===== 我的网易云主页 ===== */
+const nhp=h('section');nhp.id='nhp';nhp.hidden=true;document.body.append(nhp);
+function openNh(){nhOn=true;nhp.hidden=false;nhDraw();npEnter()}
+function closeNh(){nhOn=false;nhp.hidden=true}
+const nhDur=s=>{const m=Math.floor(s/60);return m>=60?Math.floor(m/60)+'小时'+(m%60)+'分':m+'分钟'};
+const agoTxt=t=>{const m=Math.floor((Date.now()-t)/60000);return m<1?'刚刚':m<60?m+' 分钟前':m<1440?Math.floor(m/60)+' 小时前':Math.floor(m/1440)+' 天前'};
+function signDlg(){
+  let inp;modal('个性签名',b=>{inp=h('input');inp.value=G.listen.sign||'';inp.maxLength=40;inp.placeholder='写点什么吧';inp.style.cssText='width:100%;background:var(--gray);border-radius:12px;padding:12px 14px';b.append(inp)},[['取消'],['保存',()=>{G.listen.sign=inp.value.trim().slice(0,40);save();nhDraw()},'primary']]);
+}
+async function nhPlay(p){
+  toast('读取歌单中…');
+  try{const r=await ncmCall('/playlist/track/all',{id:String(p.id),limit:'300',offset:'0'});const list=(r.songs||[]).map(ncmSong);if(!list.length){toast('这个歌单是空的');return}closeNh();openLT();ncmAdd(list)}
+  catch(e){toast(npMsg(e,'读取失败'))}
+}
+function nhOpenList(p){closeNh();openLT();openSheet('n');npOpen(p)}
+function nhReplay(s){
+  closeNh();openLT();
+  const L=G.listen,i=L.songs.findIndex(x=>s.nid?x.nid===s.nid:(x.src&&x.src===s.src));
+  if(i>=0){playSong(i);return}
+  L.songs.push({id:Date.now()+Math.random().toString(36).slice(2,6),cover:'',kind:s.kind,nid:s.nid,src:s.src,title:s.title,artist:s.artist});
+  save();playSong(L.songs.length-1);
+}
+function nhDraw(){
+  const n=ncmFix(),base=ncmBase(),pf=n.profile,L=G.listen,ct=cur();
+  const name=(pf&&pf.name)||(ct&&ct.profile.myName)||'我',av=(pf&&pf.avatar)||(ct&&ct.profile.myAvatar)||'';
+  const keep=nhp.querySelector('.nh-sc'),st0=keep?keep.scrollTop:0;
+  nhp.innerHTML='';
+  const top=h('div','nh-top'),bk=h('button'),acc=h('button','nh-tx',base?'账号':'连接');
+  bk.innerHTML=IC2.down;bk.firstChild.style.transform='rotate(90deg)';bk.onclick=closeNh;acc.onclick=ncmDlg;
+  top.append(bk,h('b','','我的'),acc);
+  const sc=h('div','nh-sc'),hd=h('div','nh-hd'),bg=h('div','nh-bg');
+  if(av)bg.style.backgroundImage='url("'+av+'")';else bg.style.background='#2a2a2e';
+  const ava=h('div','nh-av');fillAv(ava,av);
+  const sg=h('button','nh-sg',L.sign||'点这里写个签名');sg.onclick=signDlg;
+  const total=(L.total||0)+(lt.on?listenSeconds():0),sts=h('div','nh-st');
+  sts.innerHTML='<div><b>'+nhDur(total)+'</b>一起听</div><div><b>'+(L.plays||0)+'</b>听过</div><div><b>'+L.songs.length+'</b>播放列表</div>';
+  hd.append(bg,ava,h('div','nh-nm',name),sg,sts);sc.append(hd);
+  if(!base){
+    const c=h('div','nh-card');c.innerHTML='<b>还没有连接网易云</b><p>连接后，这里会显示你的歌单和「我喜欢的音乐」。</p>';
+    const b=h('button','','连接网易云');b.onclick=ncmDlg;c.append(b);sc.append(c);
+  }else if(!pf){
+    const c=h('div','nh-card');c.innerHTML='<b>API 已连接，还没登录</b><p>扫码登录后，这里会显示你的歌单。</p>';
+    const b=h('button','','去登录');b.onclick=ncmDlg;c.append(b);sc.append(c);
+  }else{
+    const sec=h('div','nh-sec'),lists=NP.lists;
+    if(!lists){sec.append(h('div','nh-empty',NP.err||'歌单读取中…'))}
+    else if(!lists.length){sec.append(h('div','nh-empty','账号里没有歌单'))}
+    else{
+      const like=lists.find(p=>p.specialType===5)||lists[0];
+      const lk=h('div','nh-like'),im=like.coverImgUrl?h('img'):h('div','ph'),tx=h('div','tx'),go=h('button','nh-go','一起听');
+      if(like.coverImgUrl)im.src=https(like.coverImgUrl)+'?param=120y120';
+      tx.append(h('b','','我喜欢的音乐'),h('small','',(like.trackCount||0)+' 首'));go.onclick=()=>nhPlay(like);
+      lk.append(im,tx,go);sec.append(lk);
+      const rest=lists.filter(p=>p!==like);
+      const hh=h('div','nh-h','我的歌单');hh.append(h('small','',rest.length+' 个'));sec.append(hh);
+      rest.forEach(p=>{
+        const r=h('div','nh-r'),im2=p.coverImgUrl?h('img'):h('div','ph'),tx2=h('div','tx');
+        if(p.coverImgUrl){im2.src=https(p.coverImgUrl)+'?param=100y100';im2.loading='lazy'}
+        tx2.append(h('b','',p.name),h('small','',(p.trackCount||0)+' 首'));
+        r.onclick=()=>nhOpenList(p);r.append(im2,tx2);sec.append(r);
+      });
+    }
+    sc.append(sec);
+  }
+  const rs=h('div','nh-sec');rs.append(h('div','nh-h','最近一起听'));
+  const H=L.hist||[];
+  if(!H.length)rs.append(h('div','nh-empty','还没有一起听过的歌'));
+  else H.slice(0,20).forEach(s=>{
+    const r=h('div','nh-r'),im=s.cover?h('img'):h('div','ph'),tx=h('div','tx');
+    if(s.cover)im.src=s.cover;
+    tx.append(h('b','',s.title),h('small','',(s.artist?s.artist+' · ':'')+agoTxt(s.t)));
+    r.onclick=()=>nhReplay(s);r.append(im,tx);rs.append(r);
+  });
+  sc.append(rs);nhp.append(top,sc);sc.scrollTop=st0;
+}
+/* 抽屉：往下滑收起 */
+(function(){let y0=null;[lp.querySelector('.lt-grab'),lp.querySelector('.lt-tabs')].forEach(el=>{
+  el.addEventListener('touchstart',e=>{y0=e.touches[0].clientY},{passive:true});
+  el.addEventListener('touchend',e=>{if(y0!=null&&e.changedTouches[0].clientY-y0>50)closeSheet();y0=null},{passive:true});
+})})();
+$('ltSend').onclick=ltSend;
+$('ltSay').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();ltSend()}});
+$('ltLyL').onclick=toggleLy;$('ltLy').onclick=toggleLy;
+ltChatDraw();
 /* ---- 按钮 ---- */
-$('ltFav').onclick=()=>{const s=sg();if(!s){toast('先导入一首歌吧');return}s.fav=!s.fav;save();ltPaint();toast(s.fav?'已加入喜欢':'已取消喜欢')};
+$('ltFav').onclick=()=>{const s=sg();if(!s){toast('先导入一首歌吧');return}s.fav=!s.fav;save();ltPaint();toast(s.fav?'已加入喜欢':'已取消喜欢');if(s.fav&&lt.on&&Math.random()<.6)setTimeout(()=>ltTheySay(1),900+Math.random()*1500)};
 $('ltAdd').onclick=addDlg;$('ltCloud').onclick=()=>openSheet('n');$('ltList').onclick=()=>openSheet('q');
 $('ltEnd').onclick=endAsk;$('ltMore').onclick=moreDlg;$('ltAr').onclick=()=>$('ltT').onclick&&$('ltT').onclick();
 function moreDlg(){
@@ -3774,18 +3866,20 @@ function moreDlg(){
     mk('编辑歌曲信息（歌名 / 歌手 / 封面）',()=>{if($('ltT').onclick)$('ltT').onclick()});
     mk('更换页面背景',()=>pickFile(1400,.85,u=>{G.listen.bg=u;save();ltPaint();toast('页面背景已更换')}));
     if(G.listen.bg)mk('恢复默认背景（封面模糊）',()=>{G.listen.bg='';save();ltPaint();toast('已恢复默认背景')});
+    mk('我的网易云主页',openNh);
     mk('唱片设置',discDlg);
     mk('小窗背景',miniBgDlg);
+    mk('清空听歌聊天',()=>askYes('清空这里的聊天记录？',()=>{G.listen.msgs=[];save();ltChatDraw()},'清空'));
     mk('结束一起听',endAsk,true);
   },[['完成',null,'primary']]);
 }
 
 setInterval(()=>{if(lt.on){paintListenTime()}},1000);
 /* ========== 网易云（第三方 API · 扫码登录 · 歌单/搜索 → 一起听） ========== */
-if(!G.ncm||typeof G.ncm!=='object')G.ncm={api:'',level:'standard',profile:null};
+G.ncm={api:'',level:'standard',profile:null};
 const NCM={ck:'',ckOk:false};
 const ncmFix=()=>{if(!G.ncm||typeof G.ncm!=='object')G.ncm={api:'',level:'standard',profile:null};return G.ncm};
-const ncmBase=()=>String(ncmFix().api||'').trim().replace(/\/+$/,'').replace(/\/login\/qr\/key$/i,'').replace(/\/login\/qr\/create$/i,'').replace(/\/login\/qr\/check$/i,'').replace(/\/login\/status$/i,'').replace(/\/user\/account$/i,'').replace(/\/+$/,'');
+const ncmBase=()=>String(ncmFix().api||'').trim().replace(/\/+$/,'');
 /* 登录凭证只放在本机 IndexedDB，不进聊天备份 */
 async function ncmCk(){if(!NCM.ckOk){NCM.ck=(await kv.get('ncm_ck'))||'';NCM.ckOk=true}return NCM.ck}
 async function ncmCall(path,params,noAuth){
@@ -3796,7 +3890,7 @@ async function ncmCall(path,params,noAuth){
   Object.keys(params||{}).forEach(k=>body.set(k,params[k]));
   if(!noAuth){const ck=await ncmCk();if(ck)body.set('cookie',ck)}
   body.set('timestamp',String(Date.now()));
-  const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),9000);
+  const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),15000);
   try{
     const r=await fetch(base+path,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body.toString(),signal:ac.signal});
     let j;
@@ -3807,22 +3901,6 @@ async function ncmCall(path,params,noAuth){
     throw Error(e&&e.name==='AbortError'?'连接超时':'连接失败：请检查 API 地址、是否为 https，以及服务是否允许跨域');
   }finally{clearTimeout(tm)}
 }
-/* 网易云二维码接口按官方示例使用 GET，并且每次请求都附带时间戳；不要复用普通 POST 请求。 */
-async function ncmQrCall(path,params={}){
-  const base=ncmBase();if(!base)throw Error('请先填写 API 地址');
-  const q=new URLSearchParams();
-  Object.entries(params||{}).forEach(([k,v])=>{if(v!==undefined&&v!==null)q.set(k,String(v))});
-  q.set('timestamp',String(Date.now()));
-  const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),15000);
-  try{
-    const r=await fetch(base+path+'?'+q.toString(),{method:'GET',cache:'no-store',credentials:'omit',headers:{'Accept':'application/json'},signal:ac.signal});
-    let j;try{j=await r.json()}catch(_){throw Error('二维码接口返回异常（HTTP '+r.status+'）')}
-    if(!r.ok)throw Error('二维码接口请求失败（HTTP '+r.status+'）');
-    return j;
-  }catch(e){if(e&&e.name==='AbortError')throw Error('二维码接口响应超时，请稍后重试');throw e}
-  finally{clearTimeout(tm)}
-}
-
 const https=u=>location.protocol==='https:'?String(u||'').replace(/^http:\/\//i,'https://'):String(u||'');
 /* 播放时现取地址（链接会过期）；拿不到就退回网易云公开外链 */
 async function ncmSongUrl(id){
@@ -3837,50 +3915,21 @@ const ncmSong=s=>{
   const al=s.al||s.album||{},pic=https(al.picUrl);
   return{nid:s.id,title:s.name||('歌曲 '+s.id),artist:(s.ar||s.artists||[]).map(a=>a.name).join(' / '),cover:pic?pic+(pic.includes('?')?'':'?param=300y300'):'',src:'',kind:'ncm'};
 };
-function ncmAdd(list){
+function ncmAdd(list,next){
   const have=new Set(G.listen.songs.filter(x=>x.kind==='ncm').map(x=>x.nid));
   const fresh=list.filter(x=>!have.has(x.nid));
   if(!fresh.length){toast('已经在播放列表里了');return 0}
+  if(next&&G.listen.songs.length){const L=G.listen;fresh.forEach((x,k)=>L.songs.splice(L.idx+1+k,0,{id:Date.now()+Math.random().toString(36).slice(2,6),cover:'',...x}));save();ltPaint();toast('已设为下一首播放');return fresh.length}
   if(lt.on)addSongs(fresh);
   else{fresh.forEach(x=>G.listen.songs.push({id:Date.now()+Math.random().toString(36).slice(2,6),cover:'',...x}));save();ltPaint();toast('已加入播放列表 '+fresh.length+' 首，在「一起听」里播放')}
   return fresh.length;
 }
 async function ncmProfile(){
-  // 先请求登录状态；只有未解析出用户 ID 时才回退到 user/account，避免两个慢接口同时阻塞扫码流程。
-  const unpack=(r)=>{
-    if(!r||r.__error)return null;
-    const d=r.data||{},dd=d.data||{};
-    const account=d.account||r.account||dd.account||null;
-    const profile=d.profile||r.profile||dd.profile||null;
-    const user=d.user||dd.user||null;
-    const pf=profile||user||account;
-    const uid=(profile&&(profile.userId||profile.user_id||profile.id))||
-      (account&&(account.id||account.userId||account.user_id))||
-      (user&&(user.userId||user.user_id||user.id))||
-      d.userId||d.user_id||r.userId||r.user_id;
-    if(!pf||!uid)return null;
-    return {uid:String(uid),name:pf.nickname||pf.name||account&&account.nickname||'已登录',
-      nickname:pf.nickname||pf.name||account&&account.nickname||'已登录',
-      avatar:https(pf.avatarUrl||pf.avatar||account&&account.avatarUrl||''),
-      signature:pf.signature||''};
-  };
-  let result=null,firstError='';
-  try{result=unpack(await ncmCall('/login/status',{}))}catch(e){firstError=e.message||'登录状态接口失败'}
-  if(!result){
-    try{result=unpack(await ncmCall('/user/account',{}))}catch(e){if(!firstError)firstError=e.message||'账号接口失败'}
-  }
-  if(!result){if(firstError)throw Error('网易云账号资料读取失败：'+firstError);return null;}
-  G.ncm.profile=result;
-  save();try{await kv.set('state',G)}catch(e){}
-  return result;
-}
-
-async function ncmEnsureProfile(){
-  ncmFix();
-  if(G.ncm.profile&&G.ncm.profile.uid)return G.ncm.profile;
-  const ck=await ncmCk();if(!ck)throw Error('尚未登录网易云，请先扫码登录');
-  const pf=await ncmProfile();if(!pf)throw Error('登录凭证已失效，请重新扫码登录');
-  return pf;
+  const r=await ncmCall('/user/account',{});
+  const pf=r&&(r.profile||(r.data&&r.data.profile));
+  if(!pf)return null;
+  G.ncm.profile={uid:pf.userId,name:pf.nickname||'已登录',avatar:https(pf.avatarUrl)};save();
+  return G.ncm.profile;
 }
 function ncmDlg(){
   ncmFix();
@@ -3923,7 +3972,7 @@ function ncmDlg(){
       if(!/^https?:\/\//i.test(v)){toast('地址要以 https:// 开头');return}
       const old=G.ncm.api;G.ncm.api=v;
       try{
-        const k=await ncmQrCall('/login/qr/key');
+        const k=await ncmCall('/login/qr/key',{},true);
         if(!((k.data&&k.data.unikey)||k.unikey))throw Error('这个地址不像是网易云 API 服务');
         if(old!==v){G.ncm.profile=null;NCM.ck='';NCM.ckOk=true;kv.set('ncm_ck','')}
         save();toast('连接成功');home();
@@ -3938,43 +3987,28 @@ function ncmDlg(){
     let stopped=false;
     b.append(img,st,dbg,btn('返回',()=>{stopped=true;home()}));
     try{
-      const k=await ncmQrCall('/login/qr/key');
+      const k=await ncmCall('/login/qr/key',{},true);
       const key=(k.data&&k.data.unikey)||k.unikey;if(!key)throw Error('获取登录 key 失败');
-      const c=await ncmQrCall('/login/qr/create',{key,qrimg:'true',platform:'web',ua:'pc'});
-      const qi=(c.data&&c.data.qrimg)||c.qrimg;if(!qi)throw Error('API 未返回二维码图片，请检查 /login/qr/create 接口');
+      const c=await ncmCall('/login/qr/create',{key,qrimg:'true'},true);
+      const qi=c.data&&c.data.qrimg;if(!qi)throw Error('生成二维码失败');
       img.src=qi;st.textContent='用网易云音乐 App 扫描二维码';
       let fails=0;
       for(;;){
-        await new Promise(r=>setTimeout(r,3000));
+        await new Promise(r=>setTimeout(r,2000));
         if(stopped||!alive())return;
         let r;
-        try{
-          r=await ncmQrCall('/login/qr/check',{key,ua:'pc'});
-          if(r&&r.code===502)r=await ncmQrCall('/login/qr/check',{key,noCookie:'true',ua:'pc'});
-          fails=0;
-        }catch(e){dbg.textContent=e.message;if(++fails>=4)throw e;continue}
+        try{r=await ncmCall('/login/qr/check',{key,noCookie:'true'},true);fails=0}catch(e){dbg.textContent=e.message;if(++fails>=4)throw e;continue}
         if(stopped||!alive())return;
         dbg.textContent='状态码 '+r.code+(r.message?' · '+r.message:'');
-        if(r.code===800){st.textContent='二维码已过期，正在重新获取…';setTimeout(()=>{if(alive()&&!stopped)qr()},350);return}
-        if(r.code===802)st.textContent='已扫码，请在网易云音乐 App 内点击确认';
-        else if(r.code===801)st.textContent='等待使用网易云音乐 App 扫码…';
+        if(r.code===800){st.textContent='二维码已过期';b.append(btn('重新获取',qr,true));return}
+        if(r.code===802)st.textContent='已扫码，请在手机上点确认';
         else if(r.code!==801&&r.code!==803)st.textContent='网易云返回了未知状态，请截图给开发者';
         if(r.code===803){
-          const cookie=r.cookie||r.cookies||(r.data&&(r.data.cookie||r.data.cookies))||(r.data&&r.data.data&&(r.data.data.cookie||r.data.data.cookies));
-          if(!cookie)throw Error('网易云已确认扫码，但 API 没有返回登录凭证。请检查 API 服务版本');
-          NCM.ck=typeof cookie==='string'?cookie:(Array.isArray(cookie)?cookie.join('; '):(cookie&&typeof cookie==='object'?Object.entries(cookie).map(([k,v])=>k+'='+v).join('; '):String(cookie||'')));NCM.ckOk=true;
-          await kv.set('ncm_ck',NCM.ck);NPROFILE.restoreTried=true;NPROFILE.restoring=true;NPROFILE.restoreError='';NPROFILE.profileTried=false;NPROFILE.detail=NPROFILE.level=NPROFILE.sub=NPROFILE.record=null;
-          // 扫码确认后立即退出轮询界面；资料接口在后台读取，避免 API 冷启动时页面像卡死。
-          toast('扫码成功，正在读取网易云资料');home();
-          ncmProfile().then(p=>{
-            if(!p)throw Error('扫码成功，但 API 没有返回账号 ID');
-            NPROFILE.restoreError='';NPROFILE.uid=null;
-            if(lp.dataset.view==='profile')ltProfilePaint();
-          }).catch(e=>{NPROFILE.restoreError=e.message||'账号资料读取失败'}).finally(()=>{
-            NPROFILE.restoring=false;
-            if(lp.dataset.view==='profile')ltProfilePaint();
-          });
-          return;
+          if(!r.cookie)throw Error('没有拿到登录凭证');
+          NCM.ck=r.cookie;NCM.ckOk=true;await kv.set('ncm_ck',r.cookie);
+          const p=await ncmProfile();
+          if(!p){NCM.ck='';await kv.set('ncm_ck','');throw Error('登录成功但读取账号失败')}
+          toast('登录成功');home();return;
         }
       }
     }catch(e){if(alive()&&!stopped){st.textContent=e.message||'出错了';b.append(btn('重试',qr,true),btn('返回',home))}}
@@ -5136,53 +5170,4 @@ html.cs-ref #chat .r.rf.mine>.m,html.cs-ref #chat .r.rf.mine>.av2,html.cs-ref #c
 html.cs-ref #chat .r.rf.theirs>.av2,html.cs-ref #chat .r.rf.theirs>.avsp{order:0!important}
 html.cs-ref #chat .r.rf.theirs>.m{order:1!important}
 html.cs-ref #chat .r.rf.theirs>.ts{order:2!important}
-
-/* 一起听：网易云风格层级与个人主页 / 聊天 */
-#lt{--lt-accent:#e84b55}
-.lt-nav{position:relative;z-index:2;display:flex;justify-content:center;gap:7px;margin:4px auto 0;padding:4px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.12);border-radius:22px;width:max-content;max-width:94%}
-.lt-nav button{border:0;background:transparent;color:rgba(255,255,255,.72);padding:7px 13px;border-radius:18px;font-size:12px}
-.lt-nav button.on{background:rgba(255,255,255,.22);color:#fff;font-weight:650}
-#lt[data-view="profile"] .lt-top,#lt[data-view="profile"] .lt-tog,#lt[data-view="profile"] .lt-stage,#lt[data-view="profile"] .lt-acts,#lt[data-view="profile"] .lt-prog,#lt[data-view="profile"] .lt-ctl,
-#lt[data-view="chat"] .lt-top,#lt[data-view="chat"] .lt-tog,#lt[data-view="chat"] .lt-stage,#lt[data-view="chat"] .lt-acts,#lt[data-view="chat"] .lt-prog,#lt[data-view="chat"] .lt-ctl{display:none!important}
-.lt-extra{display:none;position:absolute;z-index:3;inset:104px 0 0;min-height:0;background:rgba(18,18,20,.94);backdrop-filter:blur(22px);color:#fff;overflow:hidden}
-#lt[data-view="profile"] .lt-profile,#lt[data-view="chat"] .lt-chat{display:flex;flex-direction:column}
-.lt-extra-head{height:48px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 17px;border-bottom:1px solid rgba(255,255,255,.1)}
-.lt-extra-head button{border:0;background:none;color:#fff;font-size:13px}
-.lt-profile{overflow:auto;padding-bottom:24px}
-.lt-profile-hero{text-align:center;padding:28px 18px 22px;background:linear-gradient(180deg,rgba(255,255,255,.09),transparent)}
-.lt-profile-av{width:82px;height:82px;border-radius:50%;margin:auto;background:#38383d;display:grid;place-items:center;font-size:34px;overflow:hidden;border:3px solid rgba(255,255,255,.2)}
-.lt-profile-av img{width:100%;height:100%;object-fit:cover}
-.lt-profile-name{font-size:21px;margin:12px 0 5px}.lt-profile-sub{font-size:12px;color:#aaa;margin:0}
-.lt-profile-stats{display:flex;justify-content:center;gap:38px;margin-top:20px;color:#aaa;font-size:11px}
-.lt-profile-stats span{display:grid;gap:4px}.lt-profile-stats b{font-size:17px;color:#fff}
-.lt-profile-section{padding:18px}.lt-profile-section>b{font-size:15px}
-.lt-profile-lists{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:13px 0}
-.lt-profile-list{display:flex;align-items:center;gap:9px;min-width:0;font-size:12px}
-.lt-profile-list>span:last-child{min-width:0;display:grid;gap:4px}.lt-profile-list b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lt-profile-list small,.lt-profile-empty{font-size:11px;color:#999}
-.lt-profile-cover{width:48px;height:48px;border-radius:8px;background:linear-gradient(135deg,#555,#222);display:grid;place-items:center;font-size:20px}
-.lt-profile-open{width:100%;padding:12px;border-radius:22px;border:1px solid #555;background:rgba(255,255,255,.08);color:#fff}
-.lt-chat{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
-.lt-chat-now{flex:none;padding:10px 15px;font-size:11px;color:#aaa;background:rgba(255,255,255,.04);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lt-chat-feed{flex:1;min-height:0;overflow:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
-.lt-chat-msg{display:flex}.lt-chat-msg.mine{justify-content:flex-end}
-.lt-chat-bubble{max-width:78%;padding:10px 13px;border-radius:16px;background:#39393e;color:#f6f6f6;font-size:14px;line-height:1.45;overflow-wrap:anywhere}
-.lt-chat-msg.mine .lt-chat-bubble{background:#f1f1f1;color:#171717;border-bottom-right-radius:5px}
-.lt-chat-msg.theirs .lt-chat-bubble{border-bottom-left-radius:5px}
-.lt-chat-bubble img{display:block;max-width:150px;max-height:170px;object-fit:contain;border-radius:8px}
-.lt-chat-compose{flex:none;display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid rgba(255,255,255,.1)}
-.lt-chat-compose input{flex:1;min-width:0;border:0;outline:0;border-radius:20px;background:#333338;color:#fff;padding:11px 14px;font-size:14px}
-.lt-chat-compose button{border:0;border-radius:18px;padding:9px 12px;background:#eee;color:#171717;font-size:12px}
-.lt-chat-compose .lt-chat-card{background:#39393e;color:#fff;border:1px solid #555}
-
-.lt-profile-banner{height:142px;flex:none;background:linear-gradient(135deg,#444,#171719);background-size:cover;background-position:center;position:relative}
-.lt-profile-hero{position:relative;margin-top:-42px;padding:0 18px 18px;text-align:left;background:linear-gradient(180deg,transparent,rgba(18,18,20,.35))}
-.lt-profile-av{width:78px;height:78px;margin:0;border:3px solid #222;box-shadow:0 5px 18px #0008}
-.lt-profile-name{font-size:21px;margin:10px 0 4px}.lt-profile-sub{line-height:1.5;max-width:95%}
-.lt-profile-badges{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}.lt-profile-badges span{font-size:10px;padding:4px 8px;border-radius:12px;background:#343439;color:#ddd}
-.lt-profile-stats{justify-content:flex-start;gap:30px;margin-top:15px}.lt-profile-stats span{display:flex;align-items:baseline;gap:5px}
-.lt-profile-info{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.lt-profile-info>div{display:grid;gap:4px;padding:10px;border-radius:10px;background:#29292e;min-width:0}.lt-profile-info span{font-size:10px;color:#999}.lt-profile-info b{font-size:12px;overflow-wrap:anywhere}
-.lt-profile-ranking{display:grid;gap:8px;margin-top:12px}.lt-profile-rank{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 8px;padding:9px 10px;border-radius:10px;background:#29292e}.lt-profile-rank b{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lt-profile-rank span{font-size:10px;color:#999;grid-column:1}.lt-profile-rank small{font-size:10px;color:#aaa;grid-column:2;grid-row:1/3;align-self:center}
-.lt-profile-list{width:100%;border:0;text-align:left;background:transparent;color:#fff;padding:5px 0;cursor:pointer}.lt-profile-cover{height:48px;object-fit:cover;flex:none}.lt-profile-open{margin-top:8px}
-
-@media(max-height:700px){.lt-extra{inset:96px 0 0}.lt-profile-hero{padding:16px}.lt-profile-av{width:65px;height:65px}}
 </style>
