@@ -3958,7 +3958,7 @@ function ncmDlg(){
       sel.value=G.ncm.level||'standard';sel.onchange=()=>{G.ncm.level=sel.value;save()};
       b.append(sel,btn('退出登录',async()=>{NCM.ck='';NCM.ckOk=true;await kv.set('ncm_ck','');G.ncm.profile=null;save();toast('已退出');home()}),btn('修改 API 地址',addrView));
     }else{
-      b.append(h('div','hint','API 地址：'+base),btn('扫码登录',qr,true),btn('修改 API 地址',addrView));
+      b.append(h('div','hint','API 地址：'+base),btn('扫码登录',qr,true),btn('手机号验证码登录',phoneView),btn('修改 API 地址',addrView));
     }
     b.append(h('div','hint','登录凭证只保存在这台设备上，不会进入聊天备份。网易云的 VIP / 无版权歌曲可能播不出来。'));
   }
@@ -3981,6 +3981,29 @@ function ncmDlg(){
     },true));
     if(ncmBase())b.append(btn('取消',home));
   }
+  /* ---- 手机号验证码登录（扫码不好使时用） ---- */
+  function phoneView(){
+    const b=B();b.innerHTML='';
+    const rn=()=>1+Math.floor(Math.random()*254),ip='116.'+rn()+'.'+rn()+'.'+rn();
+    b.append(h('div','hint','用绑定网易云的手机号收验证码登录（仅大陆手机号）。'));
+    const ph=h('input','nc-in'),cd=h('input','nc-in');
+    ph.type='tel';ph.placeholder='手机号';ph.maxLength=11;cd.type='tel';cd.placeholder='验证码';cd.maxLength=6;
+    [ph,cd].forEach(x=>{x.inputMode='numeric';x.autocomplete='off';x.style.margin='8px 0'});
+    const bad=r=>Error((r&&(r.message||r.msg))||('失败（'+(r&&r.code)+'）'));
+    b.append(ph,btn('获取验证码',async()=>{
+      const v=ph.value.trim();if(!/^1\d{10}$/.test(v)){toast('请输入 11 位手机号');return}
+      try{const r=await ncmCall('/captcha/sent',{phone:v,ctcode:'86',realIP:ip},true);if(!r||r.code!==200)throw bad(r);toast('验证码已发送')}catch(e){err(e)}
+    }),cd,btn('登录',async()=>{
+      const v=ph.value.trim(),c=cd.value.trim();if(!/^1\d{10}$/.test(v)||!c){toast('请填手机号和验证码');return}
+      try{
+        const r=await ncmCall('/login/cellphone',{phone:v,captcha:c,countrycode:'86',realIP:ip},true);
+        if(!r||r.code!==200||!r.cookie)throw bad(r);
+        NCM.ck=r.cookie;NCM.ckOk=true;await kv.set('ncm_ck',r.cookie);
+        const p=await ncmProfile();if(!p){NCM.ck='';await kv.set('ncm_ck','');throw Error('登录成功但读取账号失败')}
+        toast('登录成功');home();
+      }catch(e){err(e)}
+    },true),btn('返回',home));
+  }
   /* ---- 扫码登录 ---- */
   async function qr(){
     const b=B();b.innerHTML='';
@@ -3989,7 +4012,7 @@ function ncmDlg(){
     const onVis=()=>{if(!document.hidden&&wake)wake()};document.addEventListener('visibilitychange',onVis);window.addEventListener('focus',onVis);window.addEventListener('pageshow',onVis);
     const done=()=>{document.removeEventListener('visibilitychange',onVis);window.removeEventListener('focus',onVis);window.removeEventListener('pageshow',onVis)};
     const tip=h('div','hint','二维码就显示在这台手机上？长按二维码保存图片，打开网易云 App →「扫一扫」→ 右上角相册，选这张图。');tip.style.textAlign='center';
-    b.append(img,st,tip,dbg,btn('我已在网易云确认，立即检测',()=>{if(wake)wake()},true),btn('返回',()=>{stopped=true;done();home()}));
+    b.append(img,st,tip,dbg,btn('我已在网易云确认，立即检测',()=>{if(wake)wake()},true),btn('改用手机号验证码登录',()=>{stopped=true;done();phoneView()}),btn('返回',()=>{stopped=true;done();home()}));
     try{
       const rn=()=>1+Math.floor(Math.random()*254),ip='116.'+rn()+'.'+rn()+'.'+rn();/* 同一次扫码全程用同一个国内 IP，避免服务器换 IP 导致扫码状态不更新 */
       const k=await ncmCall('/login/qr/key',{realIP:ip},true);
@@ -4004,9 +4027,9 @@ function ncmDlg(){
         let r;
         try{r=await ncmCall('/login/qr/check',{key,noCookie:'true',realIP:ip},true);fails=0}catch(e){dbg.textContent=e.message+'（正在重试）';if(++fails>=20)throw e;continue}
         if(stopped||!alive()){done();return}
-        dbg.textContent='状态码 '+r.code+(r.message?' · '+r.message:'');
+        dbg.textContent='状态码 '+r.code+(r.message?' · '+r.message:'')+' · 检测于 '+new Date().toLocaleTimeString('zh-CN',{hour12:false});
         if(r.code===800){done();st.textContent='二维码已过期';b.append(btn('重新获取',qr,true));return}
-        if(r.code===801)st.textContent='等待扫码…';
+        if(r.code===801)st.textContent='网易云还没收到确认（在 App 里扫码并点确认后会自动登录）';
         if(r.code===802)st.textContent='已扫码，请在手机上点确认';
         else if(r.code!==801&&r.code!==803)st.textContent='网易云返回了未知状态，请截图给开发者';
         if(r.code===803){
